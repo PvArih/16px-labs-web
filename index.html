@@ -4,9 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>16px Labs</title>
+<meta name="description" content="16px Labs builds slot games: art, animation and gameplay.">
+<meta name="theme-color" content="#010101">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<link rel="preload" as="image" href="a/p_titan.jpg">
 <style>
 /* Built from Figma "16px LAB WEB" → Desktop - 3 (1440 × 1024). The stage keeps the design's coordinates and scales to the window. */
 :root{
@@ -18,125 +21,167 @@
   --font:'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
   --s:1;                /* stage scale, set by script */
   --side:100px;         /* header side inset, set by script */
-  --ease:cubic-bezier(.2,.8,.2,1);
+  --ease:cubic-bezier(.2,.8,.2,1);      /* settle */
+  --swift:cubic-bezier(.65,0,.35,1);    /* in-out, for things that travel */
+  --out:cubic-bezier(.4,0,.2,1);
   color-scheme:dark;
 }
+@property --iris{syntax:'<length>';inherits:false;initial-value:2200px}
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;background:var(--black);color:var(--white);font-family:var(--font);-webkit-font-smoothing:antialiased}
 body{overflow-x:hidden}
 img{display:block}
 a{color:inherit;text-decoration:none}
-button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
 :focus-visible{outline:2px solid rgba(255,255,255,.6);outline-offset:4px;border-radius:6px}
+
+/* ---------- intro: logo, 16 pixels fill while the first game loads, then the logo flies into the header ---------- */
+.intro{position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;background:var(--black);transition:opacity .8s ease,visibility 0s linear .8s}
+.intro.gone{opacity:0;visibility:hidden}
+.intro .lg{width:110px;height:35px}
+.intro .px{display:flex;gap:3px}
+.intro .px i{width:4px;height:4px;background:#1d1d1f;transition:background .25s,box-shadow .4s,opacity .3s,transform .4s var(--ease)}
+.intro .px i.on{background:#d9d9db;box-shadow:0 0 8px rgba(255,255,255,.35)}
+.intro .px.out i{opacity:0;transform:translateY(6px)}
+.fly{position:fixed;left:0;top:0;z-index:61;transform-origin:0 0;pointer-events:none;will-change:transform}
+.nav .brand.wait img{opacity:0!important;transition:none!important}
+.nav .brand.flown img{opacity:1!important;transform:none!important;transition:none!important}
+.no-intro .intro{display:none}
 
 /* ---------- header ---------- */
 .nav{position:fixed;z-index:20;left:0;right:0;top:calc(32px * var(--s));height:32px;padding:0 var(--side);display:flex;align-items:center;justify-content:space-between;pointer-events:none}
 .nav>*{pointer-events:auto}
 .nav .group{display:flex;align-items:center;gap:20px}
 .nav .link{position:relative;font-size:14px;line-height:32px;color:var(--muted);white-space:nowrap;transition:color .25s}
-.nav .link::after{content:"";position:absolute;left:0;right:0;bottom:6px;height:1px;background:currentColor;transform:scaleX(0);transform-origin:left;transition:transform .35s var(--ease)}
+.nav .link::after{content:"";position:absolute;left:0;right:0;bottom:6px;height:1px;background:currentColor;transform:scaleX(0);transform-origin:right;transition:transform .45s var(--swift)}
 .nav .link:hover{color:#d9d9db}
-.nav .link:hover::after{transform:scaleX(1)}
+.nav .link:hover::after{transform:scaleX(1);transform-origin:left}
 .nav .link.on{display:flex;align-items:center;gap:8px}
 .nav .link.on::after{display:none}
 .nav .brand{position:absolute;left:50%;top:2px;transform:translateX(-50%);transition:opacity .25s,transform .35s var(--ease)}
 .nav .brand img{width:88px;height:28px}
 .nav .brand:hover{transform:translateX(-50%) scale(1.04)}
-.pillbtn{display:flex;align-items:center;justify-content:center;padding:7px 12px;border-radius:9999px;background:var(--pill);border:1px solid var(--pill);color:var(--ink);font-size:13px;font-weight:500;line-height:16px;white-space:nowrap;transition:background .2s,transform .2s var(--ease),box-shadow .3s}
+.pillbtn{position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:7px 12px;border-radius:9999px;background:var(--pill);border:1px solid var(--pill);color:var(--ink);font-size:13px;font-weight:500;line-height:16px;white-space:nowrap;transition:background .2s,transform .25s var(--ease),box-shadow .3s}
+/* a soft glint crosses the pill on hover */
+.pillbtn::before{content:"";position:absolute;top:0;bottom:0;left:-60%;width:50%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.9),transparent);transform:skewX(-18deg);opacity:0;pointer-events:none}
+.pillbtn:hover::before{animation:glint .7s var(--out)}
+@keyframes glint{0%{left:-60%;opacity:1}100%{left:120%;opacity:1}}
 .pillbtn:hover{background:var(--white);transform:translateY(-1px);box-shadow:0 8px 24px -6px rgba(255,255,255,.28)}
 .pillbtn:active{transform:translateY(0) scale(.97)}
 
 /* ---------- hero stage ---------- */
-.hero{position:relative;height:max(100svh, calc(1024px * var(--s)));overflow:hidden}
+.hero{position:relative;height:max(100svh, calc(1024px * var(--s)));overflow:hidden;touch-action:pan-y}
 .stage{position:absolute;left:50%;top:0;width:1440px;height:1024px;transform:translateX(-50%) scale(var(--s));transform-origin:top center}
-/* background: the game screen. The Figma fade to black (linear ellipse 721 × 401 around 720, 505 of the frame) is baked into the videos and posters, so the dark edges cost almost no bytes */
-.bgwrap{position:absolute;left:0;top:112px;width:1440px;height:800px;
-}
+/* background: the game screen. The Figma fade to black (linear ellipse around 720, 505 of the frame) is baked into the videos and posters */
+.bgwrap{position:absolute;left:0;top:112px;width:1440px;height:800px}
 #cards{position:absolute;inset:0;transition:transform .7s var(--ease)}
-.dragging #cards{transition:none}
-.hero{touch-action:pan-y}
+.dragging #cards,.dragging .media{transition:none}
 .dots{display:none;position:absolute;left:50%;bottom:18px;transform:translateX(-50%);gap:6px;z-index:5}
-.dots i{width:6px;height:6px;border-radius:50%;background:#3a3a3c;transition:background .3s,width .3s}
+.dots i{width:6px;height:6px;border-radius:50%;background:#3a3a3c;transition:background .3s,width .45s var(--ease),border-radius .45s}
 .dots i.on{width:16px;border-radius:3px;background:#8a8a8a}
 .edge{position:absolute;top:0;bottom:0;width:180px;pointer-events:none}
 .edge.l{left:0;background:linear-gradient(90deg,var(--black),rgba(1,1,1,0))}
 .edge.r{right:0;background:linear-gradient(270deg,var(--black),rgba(1,1,1,0))}
 .media{position:absolute;inset:0;transform:translate(var(--px,0px),var(--py,0px));transition:transform 1.2s var(--ease)}
-.media .m{position:absolute;left:0;top:-6px;width:1440px;height:812px;object-fit:cover;filter:blur(0px);opacity:1;
-  transition:filter .55s cubic-bezier(.4,0,.2,1),opacity .5s ease}
-.media .m.soft{filter:blur(26px)}
-.media .m.hide{opacity:0}
+
+/* one layer per game. Changing games: the old screen blurs, darkens and drifts away from the direction of travel,
+   the new one arrives from the other side out of the same blur. A screen whose frames are not ready yet stays soft. */
+.media .m{position:absolute;left:0;top:-6px;width:1440px;height:812px;object-fit:cover;transform-origin:50% 45%;
+  transition:filter .85s var(--out),opacity .7s ease,transform 1.15s var(--ease)}
+.media .m.soft{filter:blur(24px) brightness(.85)}
+.media .m.from{opacity:0;filter:blur(32px) brightness(.7);transform:translateX(calc(var(--dir,0) * 70px)) scale(1.07);transition:none}
+.media .m.gone{opacity:0;filter:blur(32px) brightness(.5);transform:translateX(calc(var(--dir,0) * -70px)) scale(1.03);
+  transition:filter .6s var(--out),opacity .55s ease .2s,transform 1s var(--ease)}
 .media .m.off{display:none}
+
 /* progressive blur on hover: stacked backdrop blurs, each stronger and tighter toward the middle */
 .pb{position:absolute;inset:0;pointer-events:none}
-.pb i{-webkit-backdrop-filter:blur(0px)!important;backdrop-filter:blur(0px)!important;transition:backdrop-filter .15s ease-out,-webkit-backdrop-filter .15s ease-out,opacity .15s ease-out}
+.pb i{position:absolute;inset:0;-webkit-backdrop-filter:blur(0px)!important;backdrop-filter:blur(0px)!important;transition:backdrop-filter .18s ease-out,-webkit-backdrop-filter .18s ease-out,opacity .2s ease-out}
 .pb i:nth-child(4){opacity:0}
 .hover .pb i:nth-child(4){opacity:1}
-.pb i{position:absolute;inset:0}
-.pb i:nth-child(1){-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);-webkit-mask-image:radial-gradient(ellipse 620px 420px at 720px 360px,#000 35%,transparent 100%);mask-image:radial-gradient(ellipse 620px 420px at 720px 360px,#000 35%,transparent 100%)}
-.pb i:nth-child(2){-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);-webkit-mask-image:radial-gradient(ellipse 500px 340px at 720px 360px,#000 30%,transparent 100%);mask-image:radial-gradient(ellipse 500px 340px at 720px 360px,#000 30%,transparent 100%)}
-.pb i:nth-child(3){-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);-webkit-mask-image:radial-gradient(ellipse 400px 280px at 720px 360px,#000 25%,transparent 100%);mask-image:radial-gradient(ellipse 400px 280px at 720px 360px,#000 25%,transparent 100%)}
+.pb i:nth-child(1){-webkit-mask-image:radial-gradient(ellipse 620px 420px at 720px 360px,#000 35%,transparent 100%);mask-image:radial-gradient(ellipse 620px 420px at 720px 360px,#000 35%,transparent 100%)}
+.pb i:nth-child(2){-webkit-mask-image:radial-gradient(ellipse 500px 340px at 720px 360px,#000 30%,transparent 100%);mask-image:radial-gradient(ellipse 500px 340px at 720px 360px,#000 30%,transparent 100%)}
+.pb i:nth-child(3){-webkit-mask-image:radial-gradient(ellipse 400px 280px at 720px 360px,#000 25%,transparent 100%);mask-image:radial-gradient(ellipse 400px 280px at 720px 360px,#000 25%,transparent 100%)}
 .pb i:nth-child(4){background:radial-gradient(ellipse 420px 300px at 720px 360px,rgba(0,0,0,.42),transparent 100%)}
 .hover .pb i:nth-child(1){-webkit-backdrop-filter:blur(4px)!important;backdrop-filter:blur(4px)!important}
 .hover .pb i:nth-child(2){-webkit-backdrop-filter:blur(10px)!important;backdrop-filter:blur(10px)!important}
 .hover .pb i:nth-child(3){-webkit-backdrop-filter:blur(20px)!important;backdrop-filter:blur(20px)!important}
-.hud{position:absolute;left:720px;top:470px;transform:translate(-50%,-50%) translateY(6px);display:flex;gap:10px;opacity:0;pointer-events:none;transition:opacity .18s ease-out,transform .3s var(--ease)}
-.hover .hud{opacity:1;transform:translate(-50%,-50%);pointer-events:auto}
+
+/* Play demo / See the game: each button arrives on its own (fading the row would switch off the glass blur behind the ghost button) */
+.hud{position:absolute;left:720px;top:470px;transform:translate(-50%,-50%);display:flex;gap:10px;pointer-events:none}
+.hud>*{opacity:0;transform:translateY(10px) scale(.96);filter:blur(5px);
+  transition:opacity .2s ease-out,transform .4s var(--ease),filter .25s ease-out,background .2s,box-shadow .3s}
+.hover .hud{pointer-events:auto}
+.hover .hud>*{opacity:1;transform:none;filter:none}
+.hover .hud>*:nth-child(2){transition-delay:.06s}
 .hud .pillbtn{padding:10px 18px;font-size:14px}
-.hud .ghost{display:flex;align-items:center;padding:10px 18px;border-radius:9999px;font-size:14px;font-weight:500;color:var(--white);background:rgba(20,20,22,.45);box-shadow:inset 0 0 0 1px rgba(255,255,255,.22);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);transition:background .2s,transform .2s var(--ease)}
-.hud .ghost:hover{background:rgba(20,20,22,.7);transform:translateY(-1px)}
+.hud .ghost{display:flex;align-items:center;padding:10px 18px;border-radius:9999px;font-size:14px;font-weight:500;color:var(--white);background:rgba(20,20,22,.45);box-shadow:inset 0 0 0 1px rgba(255,255,255,.22);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.hover .hud .ghost:hover{background:rgba(20,20,22,.7);transform:translateY(-1px)}
+.hover .hud .pillbtn:hover{transform:translateY(-1px)}
+.hover .hud .pillbtn:active{transform:scale(.97)}
 .hud svg{width:11px;height:11px;margin-right:8px}
 .hot{cursor:pointer}
-.modal{position:fixed;inset:0;z-index:40;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;background:rgba(1,1,1,.88);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);opacity:0;pointer-events:none;transition:opacity .35s ease}
-.modal.on{opacity:1;pointer-events:auto}
-.modal video{width:min(1200px,94vw);max-height:80vh;border-radius:12px;background:#000;box-shadow:0 0 0 1px rgba(255,255,255,.08),0 40px 80px -20px #000;transform:scale(.97);transition:transform .45s var(--ease)}
-.modal.on video{transform:none}
-.modal .bar{width:min(1200px,94vw);display:flex;justify-content:space-between;align-items:center;font-size:13px;color:#8a8a8a}
+
+/* demo player: grows out of the game screen and shrinks back into it */
+.modal{position:fixed;inset:0;z-index:40;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;visibility:hidden;pointer-events:none;transition:visibility 0s linear .75s}
+.modal.on{visibility:visible;pointer-events:auto;transition:none}
+.modal::before{content:"";position:absolute;inset:0;background:rgba(1,1,1,.88);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);opacity:0;transition:opacity .5s ease}
+.modal.on::before{opacity:1}
+.modal video{position:relative;width:min(1200px,94vw,calc(78vh * 16 / 9));aspect-ratio:16/9;height:auto;border-radius:12px;background:#000;box-shadow:0 0 0 1px rgba(255,255,255,.08),0 40px 80px -20px #000;transform-origin:0 0}
+.modal .bar{position:relative;width:min(1200px,94vw,calc(78vh * 16 / 9));display:flex;justify-content:space-between;align-items:center;font-size:13px;color:#8a8a8a;opacity:0;transform:translateY(8px);transition:opacity .25s ease,transform .4s var(--ease)}
+.modal.on .bar{opacity:1;transform:none;transition-delay:.4s}
+.modal .ghost{padding:6px 12px;border-radius:9999px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);transition:background .2s,box-shadow .2s}
+.modal .ghost:hover{background:rgba(255,255,255,.08);box-shadow:inset 0 0 0 1px rgba(255,255,255,.3)}
 
 /* game cards */
-.card{position:absolute;left:var(--x);top:var(--y);width:var(--w);height:calc(var(--ct) + 14px);opacity:var(--o);
-  transition:left .9s var(--ease),top .9s var(--ease),width .9s var(--ease),height .9s var(--ease),opacity .6s;outline-offset:8px}
+.card{position:absolute;left:var(--x);top:var(--y);width:var(--w);height:calc(var(--ct) + 14px);opacity:var(--o);filter:none;
+  transition:left .9s var(--ease),top .9s var(--ease),width .9s var(--ease),height .9s var(--ease),opacity .6s,filter .7s;outline-offset:8px}
+.card[data-slot="2"],.card[data-slot="-2"]{filter:blur(10px)}
 .card .cover{position:absolute;left:0;top:0;width:100%;height:auto;-webkit-mask-image:linear-gradient(180deg,#000 52%,transparent 96%);mask-image:linear-gradient(180deg,#000 52%,transparent 96%)}
 .card .cover.art{left:calc(50% - 50% * var(--awr));width:calc(100% * var(--awr))}
-.card:not(.center) .cover.art{filter:brightness(.78) saturate(.9)}
-.card:not(.center):not(.lock):hover .cover.art{filter:brightness(1)}
 .card.nofade .cover{-webkit-mask-image:none;mask-image:none}
 .card:not(.center) .cover,.card:not(.center) .logo{filter:brightness(.78) saturate(.9)}
-.card:not(.center):not(.lock):hover .cover,.card:not(.center):not(.lock):hover .logo{filter:brightness(1)}
-.card .logo{position:absolute;left:var(--lx);top:var(--lt);width:var(--lw);height:auto;transform-origin:50% 100%;filter:drop-shadow(0 6px 12px rgba(0,0,0,.45))}
-.card .logo{z-index:2}
-.card .credit{position:absolute;left:-40px;right:-40px;top:var(--ct);display:flex;justify-content:center;align-items:center;gap:6px;font-size:12px;line-height:14px;color:var(--muted);white-space:nowrap;transition:color .3s}
+.card:not(.center):not(.lock):hover .cover,.card:not(.center):not(.lock):hover .logo{filter:brightness(1) saturate(1)}
+.card .logo{position:absolute;z-index:2;left:var(--lx);top:var(--lt);width:var(--lw);height:auto;transform-origin:50% 100%;filter:drop-shadow(0 6px 12px rgba(0,0,0,.45))}
+/* light sweep across the logo when its game takes the middle */
+.card .shine{position:absolute;z-index:3;left:var(--lx);top:var(--lt);width:var(--lw);pointer-events:none;
+  -webkit-mask-size:100% 100%;mask-size:100% 100%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
+  background:linear-gradient(105deg,transparent 38%,rgba(255,255,255,.75) 50%,transparent 62%) no-repeat;background-size:260% 100%;background-position:160% 0;
+  mix-blend-mode:plus-lighter;opacity:.9;transition:left .9s var(--ease),top .9s var(--ease),width .9s var(--ease)}
+.card .credit{position:absolute;left:-40px;right:-40px;top:var(--ct);display:flex;justify-content:center;align-items:center;gap:6px;font-size:12px;line-height:14px;color:var(--muted);white-space:nowrap}
 .card .credit img{width:14px;height:14px}
 .card:not(.center):not(.lock):hover .cover{transform:translateY(-6px)}
 .card:not(.center):not(.lock):hover .logo{transform:scale(1.04)}
 .card:not(.center):not(.lock):active .logo{transform:scale(.98)}
 .card:not(.center):not(.lock):hover .credit{color:#8a8a8a}
-.card.center .logo{animation:float 3.6s ease-in-out 1.6s infinite}
+.card.center .logo,.card.center .shine{animation:float 3.6s ease-in-out 1.6s infinite}
 @keyframes float{0%,100%{translate:0 0}50%{translate:0 -4px}}
 
-/* entrance */
-.pre .bgwrap{opacity:0;transform:scale(1.06);filter:blur(10px)}
-.bgwrap{transition:opacity 1.4s ease,transform 1.8s var(--ease),filter 1.4s ease}
-.pre .nav .link,.pre .nav .pillbtn,.pre .nav .brand img{opacity:0;transform:translateY(-10px)}
-.nav .link,.nav .pillbtn,.nav .brand img{transition:opacity .6s ease var(--d,0s),transform .7s var(--ease) var(--d,0s),color .25s,background .2s,box-shadow .3s}
-.pre .card .cover{opacity:0;transform:translateY(60px)}
-.pre .card .logo{opacity:0;transform:scale(.82)}
-.pre .card .credit{opacity:0}
-.card .cover,.card .logo,.card .credit{transition-delay:var(--cd,0s)}
-.card .logo{transition:left .9s var(--ease),top .9s var(--ease),width .9s var(--ease),transform .6s cubic-bezier(.3,1.4,.5,1) var(--ld,0s),opacity .5s ease var(--ld,0s),filter .4s}
-.card .cover{transition:transform .9s var(--ease) var(--cd,0s),opacity .7s ease var(--cd,0s),filter .4s}
-.card .credit{transition:top .9s var(--ease),opacity .6s ease var(--rd,0s),color .3s}
+/* ---------- entrance ---------- */
+/* the game screen opens from the middle like an iris, out of a blur */
+.bgwrap{-webkit-mask-image:radial-gradient(ellipse var(--iris) calc(var(--iris) * .62) at 720px 420px,#000 55%,transparent 100%);mask-image:radial-gradient(ellipse var(--iris) calc(var(--iris) * .62) at 720px 420px,#000 55%,transparent 100%);
+  transition:--iris 2s cubic-bezier(.5,0,.15,1),opacity 1s ease,transform 2.2s var(--ease),filter 1.6s ease}
+.pre .bgwrap{--iris:0px;opacity:0;transform:scale(1.08);filter:blur(14px)}
+.done .bgwrap{-webkit-mask-image:none;mask-image:none}
+.pre .nav .link,.pre .nav .pillbtn,.pre .nav .brand img{opacity:0;transform:translateY(-10px);filter:blur(4px)}
+.nav .link,.nav .pillbtn,.nav .brand img{transition:opacity .6s ease var(--d,0s),transform .8s var(--ease) var(--d,0s),filter .6s ease var(--d,0s),color .25s,background .2s,box-shadow .3s}
+.pre .card .cover{opacity:0;transform:translateY(70px);filter:brightness(1) saturate(1) blur(14px)}
+.pre .card .logo{opacity:0;transform:scale(.82) translateY(10px)}
+.pre .card .credit{opacity:0;transform:translateY(6px)}
+.card .logo{transition:left .9s var(--ease),top .9s var(--ease),width .9s var(--ease),transform .7s cubic-bezier(.3,1.4,.5,1) var(--ld,0s),opacity .5s ease var(--ld,0s),filter .4s}
+.card .cover{transition:transform 1s var(--ease) var(--cd,0s),opacity .8s ease var(--cd,0s),filter .9s ease var(--cd,0s)}
+.card .credit{transition:top .9s var(--ease),opacity .6s ease var(--rd,0s),transform .7s var(--ease) var(--rd,0s),color .3s}
 .done .card .cover,.done .card .logo,.done .card .credit{--cd:0s;--ld:0s;--rd:0s}
+.done .card .cover{transition:transform .9s var(--ease),opacity .7s ease,filter .4s}
 
-.toast{position:fixed;left:50%;top:84px;transform:translate(-50%,-12px);opacity:0;z-index:30;padding:10px 16px;border-radius:9999px;background:rgba(30,30,32,.85);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:#d9d9db;font-size:13px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);transition:opacity .3s,transform .4s var(--ease);pointer-events:none}
-.toast.on{opacity:1;transform:translate(-50%,0)}
+.toast{position:fixed;left:50%;top:84px;transform:translate(-50%,-12px) scale(.96);opacity:0;filter:blur(6px);z-index:30;padding:10px 16px;border-radius:9999px;background:rgba(30,30,32,.85);color:#d9d9db;font-size:13px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);transition:opacity .3s,transform .45s var(--ease),filter .3s;pointer-events:none}
+.toast.on{opacity:1;transform:translate(-50%,0);filter:blur(0)}
 
 @media (max-width:760px){
-  .nav .group.left .link:not(.on),.nav .group.right .link{display:none}
+  .nav .group.left,.nav .group.right .link{display:none}
   .nav .brand{left:auto;right:auto;position:static;transform:none}
   .nav .brand:hover{transform:scale(1.04)}
   .nav{justify-content:space-between}
-  .nav .group.left{display:none}
   .dots{display:flex}
 }
 @media (prefers-reduced-motion:reduce){
@@ -145,6 +190,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 </style>
 </head>
 <body class="pre">
+<div class="intro" id="intro" aria-hidden="true"><img class="lg" id="introLogo" src="a/logo_16px.png" alt=""><div class="px" id="px"></div></div>
 <header class="nav" id="nav">
   <nav class="group left" aria-label="Main">
     <a class="link on" href="#home" aria-current="page" style="--d:.15s">Home</a>
@@ -152,7 +198,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
     <a class="link soon" href="#our-slots" style="--d:.25s">Our Slots</a>
     <a class="link soon" href="#pricing" style="--d:.3s">Pricing</a>
   </nav>
-  <a class="brand" href="#home" aria-label="16px Labs, home"><img src="a/logo_16px.png" alt="16px Labs" style="--d:.1s"></a>
+  <a class="brand" id="brand" href="#home" aria-label="16px Labs, home"><img src="a/logo_16px.png" alt="16px Labs" style="--d:.1s"></a>
   <nav class="group right" aria-label="Contact">
     <a class="link soon" href="#telegram" style="--d:.3s">Telegram</a>
     <a class="link soon" href="#discord" style="--d:.35s">Discord</a>
@@ -170,7 +216,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
   <div class="dots" id="dots" aria-hidden="true"></div>
 </main>
 <div class="toast" id="toast" role="status"></div>
-<div class="modal" id="modal" role="dialog" aria-modal="true" aria-label="Game demo"><div class="bar"><span id="mTitle">Demo</span><button class="ghost" id="mClose" style="color:#e5e5e6;font-size:13px">Close</button></div><video id="mVideo" controls playsinline></video></div>
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-label="Game demo"><video id="mVideo" controls playsinline preload="none"></video><div class="bar"><span id="mTitle">Demo</span><button class="ghost" id="mClose" style="color:#e5e5e6;font-size:13px">Close</button></div></div>
 
 <script>
 const GAMES = [
@@ -179,6 +225,9 @@ const GAMES = [
   { id:'mystic', name:'Mystic Wilds', cover:'a/cover_mystic.png', logo:'a/logo_mystic.png', la:100/321, client:'Void Studios', icon:'a/ic_void.png', poster:'a/p_mystic.jpg', video:'a/mystic.mp4', lb:233, ct:249, nofade:true },
   { id:'wildjohn', name:'Wild John', art:'a/art_wildjohn.png', aw:330, ct:230, client:'Freakylabs', icon:'a/ic_flask.png', poster:'a/p_wildjohn.jpg', video:'a/wildjohn.mp4', nofade:true }
 ];
+/* the background loops start 0.75 s into the recording (the tail crossfades into the head so the loop has no seam);
+   the demo files are the untouched recordings, so demo time = loop time + LOOP_IN */
+const LOOP_IN = .75;
 /* card slots in design coordinates (Figma: center group x 536 · side groups x 191 / 968).
    Cards stand on the credit line (y 994 center, 970 sides), so taller covers (Mystic Wilds) grow upward.
    lb = logo bottom, ct = credit top, both from the cover top at the center size (368 px). Sides are 280 px. */
@@ -196,6 +245,8 @@ function geo(g, k){ const p = SLOT[k], lb0 = g.lb || 203, ct0 = g.ct || 223;
   return { x:p.x, w:p.w, y:p.line - ct, lb, ct, o:p.o, lw, lx:(p.w - lw)/2, lt:lb - lh }; }
 const $ = s => document.querySelector(s);
 const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const wait = ms => new Promise(r => setTimeout(r, RM ? 0 : ms));
+const raf2 = () => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 
 /* ---------- scale the stage to the window ---------- */
 function fit(){
@@ -207,55 +258,103 @@ function fit(){
 }
 addEventListener('resize', fit); fit();
 
-/* ---------- game screens: one layer per game, swapped with a smooth blur ---------- */
+/* ---------- which video codec: AV1 (smaller, sharper) where it decodes smoothly, H.264 everywhere else ---------- */
+let AV1 = false;
+const codecCheck = (async () => { try {
+  if (!navigator.mediaCapabilities) return;
+  const r = await navigator.mediaCapabilities.decodingInfo({ type:'file', video:{ contentType:'video/mp4; codecs="av01.0.09M.10"', width:1920, height:1082, bitrate:2600000, framerate:60 } });
+  AV1 = r.supported && r.smooth && (r.powerEfficient || !matchMedia('(pointer: coarse)').matches);
+} catch (e) {} })();
+const srcOf = g => AV1 ? g.video.replace(/\.mp4$/, '.av1.mp4') : g.video;
+
+/* ---------- game screens ---------- */
 const media = $('#media'), LAYER = {};
-const wait = ms => new Promise(r => setTimeout(r, RM ? 0 : ms));
+let curLayer = null, zTop = 1;
 function layer(g){
   if (LAYER[g.id]) return LAYER[g.id];
-  let el;
-  if (g.video){ el = document.createElement('video'); el.poster = g.poster; el.muted = true; el.playsInline = true; el.setAttribute('playsinline',''); el.preload = 'none'; el.dataset.src = g.video; }
-  else { el = document.createElement('img'); el.src = g.bg || g.cover; el.alt = ''; if (!g.bg) el.style.cssText = 'object-fit:contain;transform:scale(1.6) translateY(-4%);filter:blur(30px) brightness(.7) saturate(1.2)'; el.dataset.placeholder = '1'; }
+  const el = document.createElement('video');
+  el.poster = g.poster; el.muted = true; el.loop = true; el.playsInline = true; el.setAttribute('playsinline',''); el.preload = 'none'; el.disableRemotePlayback = true;
+  el.dataset.game = g.id;
+  el.addEventListener('error', () => { if (el.src.includes('.av1.')) { el.src = g.video; if (el === curLayer) el.play().catch(() => {}); } });
   el.className = 'm off'; media.append(el); return LAYER[g.id] = el;
 }
-let curLayer = null, looping = false;
-function arm(el, how){ if (el.tagName !== 'VIDEO') return; if (!el.src && el.dataset.src){ el.preload = how; el.src = el.dataset.src; } else if (how === 'auto') el.preload = 'auto'; }
-function play(el){ if (el && el.tagName === 'VIDEO'){ arm(el, 'auto'); el.play().catch(() => {}); } }
-function warm(){ [1, -1].forEach(d => { const g = GAMES[((cur + d) % GAMES.length + GAMES.length) % GAMES.length]; arm(layer(g), 'auto'); }); }
-function soft(el, on){ if (el.dataset.placeholder) return; el.classList.toggle('soft', on); }
-async function swapTo(g, first){
+function arm(el, how){ if (!el.src){ el.preload = how; el.src = srcOf(GAMES.find(g => g.id === el.dataset.game)); } else if (how === 'auto') el.preload = 'auto'; }
+function play(el){ if (!el) return; arm(el, 'auto'); const p = el.play(); if (p) p.catch(() => {}); }
+const ready = el => el.readyState >= 3;
+function whenReady(el, ms){ return ready(el) ? Promise.resolve() : new Promise(r => { const done = () => { clearTimeout(t); el.removeEventListener('canplay', done); el.removeEventListener('playing', done); r(); };
+  const t = setTimeout(done, ms); el.addEventListener('canplay', done); el.addEventListener('playing', done); }); }
+function warm(){ [1, -1].forEach(d => arm(layer(GAMES[gi(d)]), 'auto')); }
+
+async function swapTo(g, dir = 0){
   const next = layer(g), prev = curLayer;
-  next.classList.remove('off'); next.classList.add('hide'); soft(next, !first); void next.offsetWidth; play(next);
-  if (prev && prev !== next){ soft(prev, true); await wait(260); }
-  next.classList.remove('hide'); if (prev && prev !== next) prev.classList.add('hide');
-  curLayer = next; await wait(first ? 0 : 280); soft(next, false);
-  if (prev && prev !== next){ await wait(520); if (prev.tagName === 'VIDEO') prev.pause(); prev.classList.add('off'); }
+  if (next === prev) return;
+  media.style.setProperty('--dir', dir);
+  next.classList.remove('off', 'gone', 'soft'); next.classList.add('from'); next.style.zIndex = ++zTop;
+  play(next); void next.offsetWidth;
+  if (prev) prev.classList.add('gone');
+  curLayer = next;
+  await raf2();
+  next.classList.remove('from');
+  if (!ready(next)){ next.classList.add('soft'); await whenReady(next, 2500); await wait(120); next.classList.remove('soft'); }
+  if (prev){ await wait(1000); if (prev !== curLayer){ prev.pause(); prev.classList.add('off'); prev.classList.remove('gone'); } }
 }
-/* end of the gameplay clip: blur out, jump to the start, blur back in */
-(function tick(){
-  requestAnimationFrame(tick);
-  const v = curLayer; if (!v || v.tagName !== 'VIDEO' || !v.duration || looping) return;
-  if (v.currentTime > v.duration - .6){ looping = true; soft(v, true);
-    setTimeout(() => { v.currentTime = 0; play(v); setTimeout(() => { soft(v, false); looping = false; }, 120); }, 560); }
-})();
+/* no point decoding video in a hidden tab */
+document.addEventListener('visibilitychange', () => { if (!curLayer || modal.classList.contains('on')) return; document.hidden ? curLayer.pause() : play(curLayer); });
 
 /* ---------- hover the slot: progressive blur + Play demo ---------- */
 const hero = $('#hero'), stage = $('#stage');
 let hovering = false;
-function setHover(on){ if (hovering === on) return; hovering = on; stage.classList.toggle('hover', on); hero.classList.toggle('hot', on); }
+function setHover(on){ if (hovering === on) return; hovering = on; stage.classList.toggle('hover', on); hero.classList.toggle('hot', on); if (on) prepDemo(); }
 function inSlot(e){ const r = stage.getBoundingClientRect(), s = r.width/1440; const x = (e.clientX - r.left)/s, y = (e.clientY - r.top)/s;
   return y < 760 && ((x-720)/330)**2 + ((y-470)/280)**2 < 1; }
-hero.addEventListener('pointermove', e => { if (e.pointerType === 'touch') return; setHover(!e.target.closest('.card') && inSlot(e)); });
+hero.addEventListener('pointermove', e => { if (e.pointerType === 'touch' || document.body.classList.contains('pre')) return; setHover(!e.target.closest('.card') && inSlot(e)); });
 hero.addEventListener('pointerleave', () => setHover(false));
-hero.addEventListener('click', e => { if (e.target.closest('.card,.hud')) return; if (inSlot(e)) { if (!hovering) setHover(true); else openDemo(); } });
+hero.addEventListener('click', e => { if (swallowClick || e.target.closest('.card,.hud')) return; if (inSlot(e)) { if (!hovering) setHover(true); else openDemo(); } });
+
+/* ---------- demo player ---------- */
 const modal = $('#modal'), mv = $('#mVideo');
-function openDemo(){ const g = GAMES[cur]; if (!g.video){ toast(`${g.name}: demo coming soon`); return; }
-  $('#mTitle').textContent = `${g.name} · gameplay`; mv.src = g.video.replace('a/', 'a/demo_'); mv.currentTime = 0; modal.classList.add('on'); mv.play().catch(() => {}); if (curLayer && curLayer.pause) curLayer.pause(); $('#mClose').focus(); }
-function closeDemo(){ modal.classList.remove('on'); mv.pause(); play(curLayer); }
+const demoOf = g => g.video.replace('a/', 'a/demo_');
+/* get the demo ready while the cursor is still over the screen: load it and park it on the frame the screen is showing,
+   so the click only has to start playback and the zoom-in runs without a hitch */
+const demoTime = () => curLayer && curLayer.currentTime ? curLayer.currentTime + LOOP_IN : 0;
+function park(){ if (modal.classList.contains('on')) return; try { mv.currentTime = Math.min(demoTime(), (mv.duration || 1e9) - .5); } catch (e) {} }
+function prepDemo(){ const s = demoOf(GAMES[cur]);
+  if (!mv.src.endsWith(s)){ mv.preload = 'auto'; mv.src = s; mv.addEventListener('loadedmetadata', park, { once:true }); }
+  else if (mv.readyState >= 1) park(); }
+/* where the game screen sits on the page right now */
+function screenRect(){ const r = stage.getBoundingClientRect(), s = r.width/1440; return { left:r.left, top:r.top + 106*s, width:1440*s, height:812*s }; }
+const mapTo = (a, b) => `translate(${a.left - b.left}px, ${a.top - b.top}px) scale(${a.width/b.width}, ${a.height/b.height})`;
+let demoAnim = null;
+function openDemo(){
+  const g = GAMES[cur]; if (!g.video || modal.classList.contains('on')) return;
+  prepDemo(); setHover(false);
+  $('#mTitle').textContent = `${g.name} · gameplay`;
+  if (mv.readyState >= 1 && Math.abs(mv.currentTime - demoTime()) > 2) park();
+  if (demoAnim){ demoAnim.cancel(); demoAnim = null; }
+  modal.classList.add('on');
+  const b = mv.getBoundingClientRect(), a = screenRect();
+  if (!RM) demoAnim = mv.animate([{ transform:mapTo(a, b), opacity:0, borderRadius:'0px' }, { transform:mapTo(a, b), opacity:.6, borderRadius:'4px', offset:.15 }, { transform:'none', opacity:1, borderRadius:'12px' }],
+    { duration:800, easing:'cubic-bezier(.22,.9,.24,1)' });
+  mv.play().catch(() => {});
+  setTimeout(() => { if (modal.classList.contains('on') && curLayer) curLayer.pause(); }, 820);
+  $('#mClose').focus({ preventScroll:true });
+}
+function closeDemo(){
+  if (!modal.classList.contains('on')) return;
+  play(curLayer);
+  if (demoAnim){ demoAnim.cancel(); demoAnim = null; }
+  const b = mv.getBoundingClientRect(), a = screenRect();
+  modal.classList.remove('on');
+  if (RM){ mv.pause(); return; }
+  demoAnim = mv.animate([{ transform:'none', opacity:1, borderRadius:'12px' }, { transform:mapTo(a, b), opacity:0, borderRadius:'0px' }],
+    { duration:650, easing:'cubic-bezier(.5,0,.2,1)', fill:'forwards' });
+  demoAnim.onfinish = () => mv.pause();   /* keeps its end state (hidden) until the next open */
+}
 $('#playDemo').addEventListener('click', e => { e.stopPropagation(); openDemo(); });
 $('#seeGame').addEventListener('click', e => { e.stopPropagation(); toast(`${GAMES[cur].name}: game page coming soon`); });
 $('#mClose').addEventListener('click', closeDemo);
 modal.addEventListener('click', e => { if (e.target === modal) closeDemo(); });
-addEventListener('keydown', e => { if (e.key === 'Escape' && modal.classList.contains('on')) closeDemo(); });
+addEventListener('keydown', e => { if (e.key === 'Escape') closeDemo(); });
 
 /* ---------- cards ---------- */
 const box = $('#cards'); let cur = 0, busy = false;
@@ -264,7 +363,9 @@ const gi = k => ((cur + k) % GAMES.length + GAMES.length) % GAMES.length;
 function fill(el, g){
   el.dataset.game = g.id; el.setAttribute('aria-label', g.name);
   el.classList.toggle('nofade', !!g.nofade);
-  el.innerHTML = g.art ? `<img class="cover art" src="${g.art}" alt="${g.name}" style="--awr:${g.aw/368}"><span class="credit"><img src="${g.icon}" alt="">Created for ${g.client}</span>` : `<img class="cover" src="${g.cover}" alt=""><img class="logo" src="${g.logo}" alt="${g.name}"><span class="credit"><img src="${g.icon}" alt="">Created for ${g.client}</span>`;
+  const credit = `<span class="credit"><img src="${g.icon}" alt="">Created for ${g.client}</span>`;
+  el.innerHTML = g.art ? `<img class="cover art" src="${g.art}" alt="${g.name}" style="--awr:${g.aw/368}">${credit}`
+    : `<img class="cover" src="${g.cover}" alt=""><img class="logo" src="${g.logo}" alt="${g.name}"><span class="shine" style="aspect-ratio:${1/g.la};-webkit-mask-image:url(${g.logo});mask-image:url(${g.logo})"></span>${credit}`;
 }
 function pose(el, k, instant){
   const p = geo(GAMES.find(g => g.id === el.dataset.game), k); el.dataset.slot = k;
@@ -275,11 +376,21 @@ function pose(el, k, instant){
   if (instant){ void el.offsetWidth; el.style.transition = ''; }
 }
 els.forEach(el => { const k = +el.dataset.slot; fill(el, GAMES[gi(k)]); pose(el, k, true);
-  const d = k === 0 ? .35 : .55 + Math.abs(k)*.05;
-  el.style.setProperty('--cd', d + 's'); el.style.setProperty('--ld', (d + .25) + 's'); el.style.setProperty('--rd', (d + .45) + 's'); });
+  const d = k === 0 ? .25 : .45 + Math.abs(k)*.08;
+  el.style.setProperty('--cd', d + 's'); el.style.setProperty('--ld', (d + .3) + 's'); el.style.setProperty('--rd', (d + .5) + 's'); });
+
+/* the game that takes the middle says hello: its logo flashes in and a light sweeps across it */
+function hello(el, delay = 0){
+  if (RM || !el) return;
+  const logo = el.querySelector('.logo'), art = el.querySelector('.cover.art'), shine = el.querySelector('.shine');
+  if (logo) logo.animate([{ filter:'drop-shadow(0 6px 12px rgba(0,0,0,.45)) brightness(1.5) blur(2px)' }, { filter:'drop-shadow(0 6px 12px rgba(0,0,0,.45)) brightness(1) blur(0px)' }], { duration:800, delay, easing:'ease-out' });
+  if (art) art.animate([{ filter:'brightness(1.3)' }, { filter:'brightness(1)' }], { duration:800, delay, easing:'ease-out' });
+  if (shine) shine.animate([{ backgroundPosition:'160% 0' }, { backgroundPosition:'-60% 0' }], { duration:1100, delay:delay + 150, easing:'cubic-bezier(.4,0,.2,1)' });
+}
 
 async function move(dir){
-  if (busy || !dir) return; busy = true;
+  if (busy || !dir || modal.classList.contains('on')) return; busy = true;
+  setHover(false);
   els.forEach(el => el.classList.add('lock')); setTimeout(unlock, 950);
   cur = gi(dir);
   els.forEach(el => {
@@ -287,13 +398,16 @@ async function move(dir){
     if (k < -2 || k > 2){ k = k < -2 ? 2 : -2; fill(el, GAMES[gi(k)]); pose(el, k, true); }
     else pose(el, k, false);
   });
-  paintDots(); await swapTo(GAMES[cur]); warm();
-  busy = false;
+  paintDots();
+  hello(els.find(el => el.classList.contains('center')), 380);
+  swapTo(GAMES[cur], dir).then(warm);
+  await wait(520); busy = false;
 }
 function unlock(){ addEventListener('pointermove', () => els.forEach(el => el.classList.remove('lock')), { once:true }); }
 function paintDots(){ $('#dots').innerHTML = GAMES.map((g, i) => `<i class="${i === cur ? 'on' : ''}"></i>`).join(''); }
 paintDots();
-/* touch: drag the row of cards with a finger, release past ~50 px to change the game */
+
+/* touch: drag the row of cards with a finger, release past ~50 px to change the game; the screen leans along */
 let drag = null, swallowClick = false;
 const stageScale = () => parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--s')) || 1;
 hero.addEventListener('pointerdown', e => { if (e.pointerType !== 'touch' || busy) return; drag = { x:e.clientX, y:e.clientY, dx:0, on:false, t:performance.now() }; });
@@ -301,7 +415,9 @@ hero.addEventListener('pointermove', e => {
   if (!drag || e.pointerType !== 'touch') return;
   const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
   if (!drag.on){ if (Math.abs(dx) < 8 || Math.abs(dx) < Math.abs(dy)) { if (Math.abs(dy) > 12) drag = null; return; } drag.on = true; hero.classList.add('dragging'); }
-  drag.dx = dx; box.style.transform = `translateX(${dx / stageScale()}px)`;
+  drag.dx = dx; const s = stageScale();
+  box.style.transform = `translateX(${dx / s}px)`;
+  media.style.setProperty('--px', (dx * .12 / s).toFixed(1) + 'px');
 });
 function endDrag(){
   if (!drag) return; const d = drag; drag = null;
@@ -309,7 +425,7 @@ function endDrag(){
   swallowClick = true; setTimeout(() => { swallowClick = false; }, 60);
   hero.classList.remove('dragging');
   const fast = Math.abs(d.dx) / Math.max(1, performance.now() - d.t) > .5;
-  box.style.transform = 'translateX(0px)';
+  box.style.transform = 'translateX(0px)'; media.style.setProperty('--px', '0px');
   if (Math.abs(d.dx) > 50 || (fast && Math.abs(d.dx) > 20)) move(d.dx < 0 ? 1 : -1);
 }
 hero.addEventListener('pointerup', endDrag); hero.addEventListener('pointercancel', endDrag);
@@ -331,13 +447,64 @@ let tt = 0;
 function toast(msg){ const t = $('#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(tt); tt = setTimeout(() => t.classList.remove('on'), 1800); }
 document.querySelectorAll('.soon').forEach(a => a.addEventListener('click', e => { e.preventDefault(); toast(`${a.textContent.trim()}: coming soon`); }));
 
-/* boot: wait for the first screen and covers, then play the entrance */
+/* ---------- boot ---------- */
+const intro = $('#intro'), px = $('#px'), brand = $('#brand');
+let seen = false; try { seen = sessionStorage.getItem('16px-intro') === '1'; sessionStorage.setItem('16px-intro', '1'); } catch (e) {}
+const useIntro = !RM && !seen;
+if (!useIntro) document.body.classList.add('no-intro');
+px.innerHTML = '<i></i>'.repeat(16);
+const dotsEls = [...px.children];
+let loaded = false;
+
+/* the 16 pixels fill with time, and finish only once the first game can play */
+function runPixels(){ return new Promise(res => {
+  const t0 = performance.now(); let lit = 0;
+  (function step(){
+    const p = loaded ? 1 : Math.min(.82, (performance.now() - t0) / 2200);
+    const want = Math.floor(p * 16 + (loaded ? 0 : .5));
+    if (want > lit){ dotsEls[lit].classList.add('on'); lit++; }
+    if (lit >= 16) return res();
+    setTimeout(step, loaded ? 28 : 55);
+  })();
+}); }
+/* the intro logo flies into its place in the header */
+async function flyLogo(){
+  const from = $('#introLogo').getBoundingClientRect(), to = brand.getBoundingClientRect();
+  const f = document.createElement('img'); f.src = 'a/logo_16px.png'; f.className = 'fly'; f.alt = '';
+  f.style.width = from.width + 'px'; f.style.height = from.height + 'px';
+  document.body.append(f); $('#introLogo').style.visibility = 'hidden';
+  const k = to.width / from.width;
+  const a = f.animate([{ transform:`translate(${from.left}px, ${from.top}px)` }, { transform:`translate(${to.left}px, ${to.top}px) scale(${k})` }],
+    { duration:950, easing:'cubic-bezier(.65,0,.2,1)', fill:'forwards' });
+  await wait(250); intro.classList.add('gone'); revealPage();
+  await a.finished.catch(() => {});
+  brand.classList.remove('wait'); brand.classList.add('flown'); f.remove();
+}
+let revealed = false;
+function revealPage(){
+  if (revealed) return; revealed = true;
+  requestAnimationFrame(() => {
+    document.body.classList.remove('pre');
+    setTimeout(() => hello(els.find(el => el.classList.contains('center'))), 1500);
+    setTimeout(() => document.body.classList.add('done'), 2600);
+  });
+}
+
 (async () => {
-  await Promise.all([...document.images].map(i => i.complete ? 0 : new Promise(r => { i.onload = i.onerror = r; })));
-  await swapTo(GAMES[0], true);
-  requestAnimationFrame(() => { document.body.classList.remove('pre'); setTimeout(() => document.body.classList.add('done'), 2000); });
-  const v0 = curLayer; const go = () => setTimeout(warm, 600);
-  if (v0 && v0.readyState >= 3) go(); else if (v0) v0.addEventListener('canplaythrough', go, { once:true });
+  if (useIntro){
+    brand.classList.add('wait');
+    $('#introLogo').animate([{ opacity:0, filter:'blur(10px)', transform:'scale(1.15)' }, { opacity:1, filter:'blur(0px)', transform:'scale(1)' }], { duration:900, easing:'cubic-bezier(.2,.8,.2,1)', fill:'backwards' });
+  }
+  const pix = useIntro ? wait(500).then(runPixels) : null;
+  await Promise.race([codecCheck, wait(400)]);
+  const imgs = Promise.all([...document.images].map(i => i.complete ? 0 : new Promise(r => { i.onload = i.onerror = r; })));
+  swapTo(GAMES[0], 0);
+  await Promise.all([imgs, whenReady(curLayer, useIntro ? 6000 : 1200)]);
+  loaded = true;
+  if (useIntro){ await pix; await wait(220); px.classList.add('out'); await wait(200); await flyLogo(); }
+  else revealPage();
+  const v0 = curLayer; const go = () => setTimeout(warm, 800);
+  ready(v0) ? go() : v0.addEventListener('canplaythrough', go, { once:true });
 })();
 </script>
 </body>
