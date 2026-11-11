@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>16px Labs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Built from Figma "16px LAB WEB" → Desktop - 3 (1440 × 1024). The stage keeps the design's coordinates and scales to the window. */
+:root{
+  --black:#010101;      /* page */
+  --muted:#555555;      /* nav + credits */
+  --pill:#e5e5e6;       /* Build your slot */
+  --ink:#08090a;        /* text on the pill */
+  --white:#ffffff;
+  --font:'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --s:1;                /* stage scale, set by script */
+  --side:100px;         /* header side inset, set by script */
+  --ease:cubic-bezier(.2,.8,.2,1);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--black);color:var(--white);font-family:var(--font);-webkit-font-smoothing:antialiased}
+body{overflow-x:hidden}
+img{display:block}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+:focus-visible{outline:2px solid rgba(255,255,255,.6);outline-offset:4px;border-radius:6px}
+
+/* ---------- header ---------- */
+.nav{position:fixed;z-index:20;left:0;right:0;top:calc(32px * var(--s));height:32px;padding:0 var(--side);display:flex;align-items:center;justify-content:space-between;pointer-events:none}
+.nav>*{pointer-events:auto}
+.nav .group{display:flex;align-items:center;gap:20px}
+.nav .link{position:relative;font-size:14px;line-height:32px;color:var(--muted);white-space:nowrap;transition:color .25s}
+.nav .link::after{content:"";position:absolute;left:0;right:0;bottom:6px;height:1px;background:currentColor;transform:scaleX(0);transform-origin:left;transition:transform .35s var(--ease)}
+.nav .link:hover{color:#d9d9db}
+.nav .link:hover::after{transform:scaleX(1)}
+.nav .link.on{display:flex;align-items:center;gap:8px}
+.nav .link.on::after{display:none}
+.nav .brand{position:absolute;left:50%;top:2px;transform:translateX(-50%);transition:opacity .25s,transform .35s var(--ease)}
+.nav .brand img{width:88px;height:28px}
+.nav .brand:hover{transform:translateX(-50%) scale(1.04)}
+.pillbtn{display:flex;align-items:center;justify-content:center;padding:7px 12px;border-radius:9999px;background:var(--pill);border:1px solid var(--pill);color:var(--ink);font-size:13px;font-weight:500;line-height:16px;white-space:nowrap;transition:background .2s,transform .2s var(--ease),box-shadow .3s}
+.pillbtn:hover{background:var(--white);transform:translateY(-1px);box-shadow:0 8px 24px -6px rgba(255,255,255,.28)}
+.pillbtn:active{transform:translateY(0) scale(.97)}
+
+/* ---------- hero stage ---------- */
+.hero{position:relative;height:max(100svh, calc(1024px * var(--s)));overflow:hidden}
+.stage{position:absolute;left:50%;top:0;width:1440px;height:1024px;transform:translateX(-50%) scale(var(--s));transform-origin:top center}
+/* background: the game screen. The Figma fade to black (linear ellipse 721 × 401 around 720, 505 of the frame) is baked into the videos and posters, so the dark edges cost almost no bytes */
+.bgwrap{position:absolute;left:0;top:112px;width:1440px;height:800px;
+}
+#cards{position:absolute;inset:0;transition:transform .7s var(--ease)}
+.dragging #cards{transition:none}
+.hero{touch-action:pan-y}
+.dots{display:none;position:absolute;left:50%;bottom:18px;transform:translateX(-50%);gap:6px;z-index:5}
+.dots i{width:6px;height:6px;border-radius:50%;background:#3a3a3c;transition:background .3s,width .3s}
+.dots i.on{width:16px;border-radius:3px;background:#8a8a8a}
+.edge{position:absolute;top:0;bottom:0;width:180px;pointer-events:none}
+.edge.l{left:0;background:linear-gradient(90deg,var(--black),rgba(1,1,1,0))}
+.edge.r{right:0;background:linear-gradient(270deg,var(--black),rgba(1,1,1,0))}
+.media{position:absolute;inset:0;transform:translate(var(--px,0px),var(--py,0px));transition:transform 1.2s var(--ease)}
+.media .m{position:absolute;left:0;top:-6px;width:1440px;height:812px;object-fit:cover;filter:blur(0px);opacity:1;
+  transition:filter .55s cubic-bezier(.4,0,.2,1),opacity .5s ease}
+.media .m.soft{filter:blur(26px)}
+.media .m.hide{opacity:0}
+.media .m.off{display:none}
+/* progressive blur on hover: stacked backdrop blurs, each stronger and tighter toward the middle */
+.pb{position:absolute;inset:0;pointer-events:none}
+.pb i{-webkit-backdrop-filter:blur(0px)!important;backdrop-filter:blur(0px)!important;transition:backdrop-filter .15s ease-out,-webkit-backdrop-filter .15s ease-out,opacity .15s ease-out}
+.pb i:nth-child(4){opacity:0}
+.hover .pb i:nth-child(4){opacity:1}
+.pb i{position:absolute;inset:0}
+.pb i:nth-child(1){-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);-webkit-mask-image:radial-gradient(ellipse 620px 420px at 720px 360px,#000 35%,transparent 100%);mask-image:radial-gradient(ellipse 620px 420px at 720px 360px,#000 35%,transparent 100%)}
+.pb i:nth-child(2){-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);-webkit-mask-image:radial-gradient(ellipse 500px 340px at 720px 360px,#000 30%,transparent 100%);mask-image:radial-gradient(ellipse 500px 340px at 720px 360px,#000 30%,transparent 100%)}
+.pb i:nth-child(3){-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);-webkit-mask-image:radial-gradient(ellipse 400px 280px at 720px 360px,#000 25%,transparent 100%);mask-image:radial-gradient(ellipse 400px 280px at 720px 360px,#000 25%,transparent 100%)}
+.pb i:nth-child(4){background:radial-gradient(ellipse 420px 300px at 720px 360px,rgba(0,0,0,.42),transparent 100%)}
+.hover .pb i:nth-child(1){-webkit-backdrop-filter:blur(4px)!important;backdrop-filter:blur(4px)!important}
+.hover .pb i:nth-child(2){-webkit-backdrop-filter:blur(10px)!important;backdrop-filter:blur(10px)!important}
+.hover .pb i:nth-child(3){-webkit-backdrop-filter:blur(20px)!important;backdrop-filter:blur(20px)!important}
+.hud{position:absolute;left:720px;top:470px;transform:translate(-50%,-50%) translateY(6px);display:flex;gap:10px;opacity:0;pointer-events:none;transition:opacity .18s ease-out,transform .3s var(--ease)}
+.hover .hud{opacity:1;transform:translate(-50%,-50%);pointer-events:auto}
+.hud .pillbtn{padding:10px 18px;font-size:14px}
+.hud .ghost{display:flex;align-items:center;padding:10px 18px;border-radius:9999px;font-size:14px;font-weight:500;color:var(--white);background:rgba(20,20,22,.45);box-shadow:inset 0 0 0 1px rgba(255,255,255,.22);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);transition:background .2s,transform .2s var(--ease)}
+.hud .ghost:hover{background:rgba(20,20,22,.7);transform:translateY(-1px)}
+.hud svg{width:11px;height:11px;margin-right:8px}
+.hot{cursor:pointer}
+.modal{position:fixed;inset:0;z-index:40;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;background:rgba(1,1,1,.88);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);opacity:0;pointer-events:none;transition:opacity .35s ease}
+.modal.on{opacity:1;pointer-events:auto}
+.modal video{width:min(1200px,94vw);max-height:80vh;border-radius:12px;background:#000;box-shadow:0 0 0 1px rgba(255,255,255,.08),0 40px 80px -20px #000;transform:scale(.97);transition:transform .45s var(--ease)}
+.modal.on video{transform:none}
+.modal .bar{width:min(1200px,94vw);display:flex;justify-content:space-between;align-items:center;font-size:13px;color:#8a8a8a}
+
+/* game cards */
+.card{position:absolute;left:var(--x);top:var(--y);width:var(--w);height:calc(var(--ct) + 14px);opacity:var(--o);
+  transition:left .9s var(--ease),top .9s var(--ease),width .9s var(--ease),height .9s var(--ease),opacity .6s;outline-offset:8px}
+.card .cover{position:absolute;left:0;top:0;width:100%;height:auto;-webkit-mask-image:linear-gradient(180deg,#000 52%,transparent 96%);mask-image:linear-gradient(180deg,#000 52%,transparent 96%)}
+.card .cover.art{left:calc(50% - 50% * var(--awr));width:calc(100% * var(--awr))}
+.card:not(.center) .cover.art{filter:brightness(.78) saturate(.9)}
+.card:not(.center):not(.lock):hover .cover.art{filter:brightness(1)}
+.card.nofade .cover{-webkit-mask-image:none;mask-image:none}
+.card:not(.center) .cover,.card:not(.center) .logo{filter:brightness(.78) saturate(.9)}
+.card:not(.center):not(.lock):hover .cover,.card:not(.center):not(.lock):hover .logo{filter:brightness(1)}
+.card .logo{position:absolute;left:var(--lx);top:var(--lt);width:var(--lw);height:auto;transform-origin:50% 100%;filter:drop-shadow(0 6px 12px rgba(0,0,0,.45))}
+.card .logo{z-index:2}
+.card .credit{position:absolute;left:-40px;right:-40px;top:var(--ct);display:flex;justify-content:center;align-items:center;gap:6px;font-size:12px;line-height:14px;color:var(--muted);white-space:nowrap;transition:color .3s}
+.card .credit img{width:14px;height:14px}
+.card:not(.center):not(.lock):hover .cover{transform:translateY(-6px)}
+.card:not(.center):not(.lock):hover .logo{transform:scale(1.04)}
+.card:not(.center):not(.lock):active .logo{transform:scale(.98)}
+.card:not(.center):not(.lock):hover .credit{color:#8a8a8a}
+.card.center .logo{animation:float 3.6s ease-in-out 1.6s infinite}
+@keyframes float{0%,100%{translate:0 0}50%{translate:0 -4px}}
+
+/* entrance */
+.pre .bgwrap{opacity:0;transform:scale(1.06);filter:blur(10px)}
+.bgwrap{transition:opacity 1.4s ease,transform 1.8s var(--ease),filter 1.4s ease}
+.pre .nav .link,.pre .nav .pillbtn,.pre .nav .brand img{opacity:0;transform:translateY(-10px)}
+.nav .link,.nav .pillbtn,.nav .brand img{transition:opacity .6s ease var(--d,0s),transform .7s var(--ease) var(--d,0s),color .25s,background .2s,box-shadow .3s}
+.pre .card .cover{opacity:0;transform:translateY(60px)}
+.pre .card .logo{opacity:0;transform:scale(.82)}
+.pre .card .credit{opacity:0}
+.card .cover,.card .logo,.card .credit{transition-delay:var(--cd,0s)}
+.card .logo{transition:left .9s var(--ease),top .9s var(--ease),width .9s var(--ease),transform .6s cubic-bezier(.3,1.4,.5,1) var(--ld,0s),opacity .5s ease var(--ld,0s),filter .4s}
+.card .cover{transition:transform .9s var(--ease) var(--cd,0s),opacity .7s ease var(--cd,0s),filter .4s}
+.card .credit{transition:top .9s var(--ease),opacity .6s ease var(--rd,0s),color .3s}
+.done .card .cover,.done .card .logo,.done .card .credit{--cd:0s;--ld:0s;--rd:0s}
+
+.toast{position:fixed;left:50%;top:84px;transform:translate(-50%,-12px);opacity:0;z-index:30;padding:10px 16px;border-radius:9999px;background:rgba(30,30,32,.85);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:#d9d9db;font-size:13px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);transition:opacity .3s,transform .4s var(--ease);pointer-events:none}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+
+@media (max-width:760px){
+  .nav .group.left .link:not(.on),.nav .group.right .link{display:none}
+  .nav .brand{left:auto;right:auto;position:static;transform:none}
+  .nav .brand:hover{transform:scale(1.04)}
+  .nav{justify-content:space-between}
+  .nav .group.left{display:none}
+  .dots{display:flex}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition-duration:.01s!important;transition-delay:0s!important}
+}
+</style>
+</head>
+<body class="pre">
+<header class="nav" id="nav">
+  <nav class="group left" aria-label="Main">
+    <a class="link on" href="#home" aria-current="page" style="--d:.15s">Home</a>
+    <a class="link soon" href="#how-we-work" style="--d:.2s">How we work?</a>
+    <a class="link soon" href="#our-slots" style="--d:.25s">Our Slots</a>
+    <a class="link soon" href="#pricing" style="--d:.3s">Pricing</a>
+  </nav>
+  <a class="brand" href="#home" aria-label="16px Labs, home"><img src="a/logo_16px.png" alt="16px Labs" style="--d:.1s"></a>
+  <nav class="group right" aria-label="Contact">
+    <a class="link soon" href="#telegram" style="--d:.3s">Telegram</a>
+    <a class="link soon" href="#discord" style="--d:.35s">Discord</a>
+    <a class="pillbtn soon" href="#build" style="--d:.4s">Build your slot</a>
+  </nav>
+</header>
+
+<main class="hero" id="hero" aria-label="Our slots">
+  <div class="stage" id="stage">
+    <div class="bgwrap" id="bgwrap"><div class="media" id="media" aria-hidden="true"></div><div class="pb"><i></i><i></i><i></i><i></i></div></div>
+    <div class="hud" id="hud"><button class="pillbtn" id="playDemo"><svg viewBox="0 0 11 11" aria-hidden="true"><path d="M2 1v9l8-4.5z" fill="currentColor"/></svg>Play demo</button><button class="ghost" id="seeGame">See the game</button></div>
+    <div class="edge l" aria-hidden="true"></div><div class="edge r" aria-hidden="true"></div>
+    <div id="cards" role="tablist" aria-label="Games"></div>
+  </div>
+  <div class="dots" id="dots" aria-hidden="true"></div>
+</main>
+<div class="toast" id="toast" role="status"></div>
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-label="Game demo"><div class="bar"><span id="mTitle">Demo</span><button class="ghost" id="mClose" style="color:#e5e5e6;font-size:13px">Close</button></div><video id="mVideo" controls playsinline></video></div>
+
+<script>
+const GAMES = [
+  { id:'titan', name:'Titan Storm', cover:'a/cover_titan.png', logo:'a/logo_titan.png', la:95/320, client:'Freakylabs', icon:'a/ic_flask.png', poster:'a/p_titan.jpg', video:'a/titan.mp4' },
+  { id:'district', name:'District 33', cover:'a/cover_district.png', logo:'a/logo_district.png', la:82/244, client:'Creative City', icon:'a/ic_cc.png', poster:'a/p_district.jpg', video:'a/district.mp4' },
+  { id:'mystic', name:'Mystic Wilds', cover:'a/cover_mystic.png', logo:'a/logo_mystic.png', la:100/321, client:'Void Studios', icon:'a/ic_void.png', poster:'a/p_mystic.jpg', video:'a/mystic.mp4', lb:233, ct:249, nofade:true },
+  { id:'wildjohn', name:'Wild John', art:'a/art_wildjohn.png', aw:330, ct:230, client:'Freakylabs', icon:'a/ic_flask.png', poster:'a/p_wildjohn.jpg', video:'a/wildjohn.mp4', nofade:true }
+];
+/* card slots in design coordinates (Figma: center group x 536 · side groups x 191 / 968).
+   Cards stand on the credit line (y 994 center, 970 sides), so taller covers (Mystic Wilds) grow upward.
+   lb = logo bottom, ct = credit top, both from the cover top at the center size (368 px). Sides are 280 px. */
+const SLOT = {
+  '-2': { x:-330, w:280, line:970, o:0 },
+  '-1': { x:191,  w:280, line:970, o:1 },
+  '0':  { x:536,  w:368, line:994, o:1 },
+  '1':  { x:968,  w:280, line:970, o:1 },
+  '2':  { x:1490, w:280, line:970, o:0 }
+};
+const SIDE = 280/368;
+function geo(g, k){ const p = SLOT[k], lb0 = g.lb || 203, ct0 = g.ct || 223;
+  const lb = k === 0 ? lb0 : lb0*SIDE + 5, ct = k === 0 ? ct0 : ct0*SIDE + 6;
+  const lw = p.w*320/368, lh = lw*(g.la || .3);
+  return { x:p.x, w:p.w, y:p.line - ct, lb, ct, o:p.o, lw, lx:(p.w - lw)/2, lt:lb - lh }; }
+const $ = s => document.querySelector(s);
+const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- scale the stage to the window ---------- */
+function fit(){
+  const vw = innerWidth, vh = innerHeight;
+  const s = vw < 760 ? Math.max(.55, vh/1024*.94) : Math.min(1, vw/1440, vh/1024);
+  document.documentElement.style.setProperty('--s', s);
+  const stageLeft = (vw - 1440*s)/2;
+  document.documentElement.style.setProperty('--side', Math.max(16, stageLeft + 100*s) + 'px');
+}
+addEventListener('resize', fit); fit();
+
+/* ---------- game screens: one layer per game, swapped with a smooth blur ---------- */
+const media = $('#media'), LAYER = {};
+const wait = ms => new Promise(r => setTimeout(r, RM ? 0 : ms));
+function layer(g){
+  if (LAYER[g.id]) return LAYER[g.id];
+  let el;
+  if (g.video){ el = document.createElement('video'); el.poster = g.poster; el.muted = true; el.playsInline = true; el.setAttribute('playsinline',''); el.preload = 'none'; el.dataset.src = g.video; }
+  else { el = document.createElement('img'); el.src = g.bg || g.cover; el.alt = ''; if (!g.bg) el.style.cssText = 'object-fit:contain;transform:scale(1.6) translateY(-4%);filter:blur(30px) brightness(.7) saturate(1.2)'; el.dataset.placeholder = '1'; }
+  el.className = 'm off'; media.append(el); return LAYER[g.id] = el;
+}
+let curLayer = null, looping = false;
+function arm(el, how){ if (el.tagName !== 'VIDEO') return; if (!el.src && el.dataset.src){ el.preload = how; el.src = el.dataset.src; } else if (how === 'auto') el.preload = 'auto'; }
+function play(el){ if (el && el.tagName === 'VIDEO'){ arm(el, 'auto'); el.play().catch(() => {}); } }
+function warm(){ [1, -1].forEach(d => { const g = GAMES[((cur + d) % GAMES.length + GAMES.length) % GAMES.length]; arm(layer(g), 'auto'); }); }
+function soft(el, on){ if (el.dataset.placeholder) return; el.classList.toggle('soft', on); }
+async function swapTo(g, first){
+  const next = layer(g), prev = curLayer;
+  next.classList.remove('off'); next.classList.add('hide'); soft(next, !first); void next.offsetWidth; play(next);
+  if (prev && prev !== next){ soft(prev, true); await wait(260); }
+  next.classList.remove('hide'); if (prev && prev !== next) prev.classList.add('hide');
+  curLayer = next; await wait(first ? 0 : 280); soft(next, false);
+  if (prev && prev !== next){ await wait(520); if (prev.tagName === 'VIDEO') prev.pause(); prev.classList.add('off'); }
+}
+/* end of the gameplay clip: blur out, jump to the start, blur back in */
+(function tick(){
+  requestAnimationFrame(tick);
+  const v = curLayer; if (!v || v.tagName !== 'VIDEO' || !v.duration || looping) return;
+  if (v.currentTime > v.duration - .6){ looping = true; soft(v, true);
+    setTimeout(() => { v.currentTime = 0; play(v); setTimeout(() => { soft(v, false); looping = false; }, 120); }, 560); }
+})();
+
+/* ---------- hover the slot: progressive blur + Play demo ---------- */
+const hero = $('#hero'), stage = $('#stage');
+let hovering = false;
+function setHover(on){ if (hovering === on) return; hovering = on; stage.classList.toggle('hover', on); hero.classList.toggle('hot', on); }
+function inSlot(e){ const r = stage.getBoundingClientRect(), s = r.width/1440; const x = (e.clientX - r.left)/s, y = (e.clientY - r.top)/s;
+  return y < 760 && ((x-720)/330)**2 + ((y-470)/280)**2 < 1; }
+hero.addEventListener('pointermove', e => { if (e.pointerType === 'touch') return; setHover(!e.target.closest('.card') && inSlot(e)); });
+hero.addEventListener('pointerleave', () => setHover(false));
+hero.addEventListener('click', e => { if (e.target.closest('.card,.hud')) return; if (inSlot(e)) { if (!hovering) setHover(true); else openDemo(); } });
+const modal = $('#modal'), mv = $('#mVideo');
+function openDemo(){ const g = GAMES[cur]; if (!g.video){ toast(`${g.name}: demo coming soon`); return; }
+  $('#mTitle').textContent = `${g.name} · gameplay`; mv.src = g.video.replace('a/', 'a/demo_'); mv.currentTime = 0; modal.classList.add('on'); mv.play().catch(() => {}); if (curLayer && curLayer.pause) curLayer.pause(); $('#mClose').focus(); }
+function closeDemo(){ modal.classList.remove('on'); mv.pause(); play(curLayer); }
+$('#playDemo').addEventListener('click', e => { e.stopPropagation(); openDemo(); });
+$('#seeGame').addEventListener('click', e => { e.stopPropagation(); toast(`${GAMES[cur].name}: game page coming soon`); });
+$('#mClose').addEventListener('click', closeDemo);
+modal.addEventListener('click', e => { if (e.target === modal) closeDemo(); });
+addEventListener('keydown', e => { if (e.key === 'Escape' && modal.classList.contains('on')) closeDemo(); });
+
+/* ---------- cards ---------- */
+const box = $('#cards'); let cur = 0, busy = false;
+const els = [-2,-1,0,1,2].map(k => { const b = document.createElement('button'); b.className = 'card'; b.dataset.slot = k; b.setAttribute('role','tab'); box.append(b); return b; });
+const gi = k => ((cur + k) % GAMES.length + GAMES.length) % GAMES.length;
+function fill(el, g){
+  el.dataset.game = g.id; el.setAttribute('aria-label', g.name);
+  el.classList.toggle('nofade', !!g.nofade);
+  el.innerHTML = g.art ? `<img class="cover art" src="${g.art}" alt="${g.name}" style="--awr:${g.aw/368}"><span class="credit"><img src="${g.icon}" alt="">Created for ${g.client}</span>` : `<img class="cover" src="${g.cover}" alt=""><img class="logo" src="${g.logo}" alt="${g.name}"><span class="credit"><img src="${g.icon}" alt="">Created for ${g.client}</span>`;
+}
+function pose(el, k, instant){
+  const p = geo(GAMES.find(g => g.id === el.dataset.game), k); el.dataset.slot = k;
+  if (instant) el.style.transition = 'none';
+  el.style.setProperty('--x', p.x + 'px'); el.style.setProperty('--y', p.y + 'px'); el.style.setProperty('--w', p.w + 'px');
+  el.style.setProperty('--lw', p.lw + 'px'); el.style.setProperty('--lx', p.lx + 'px'); el.style.setProperty('--lt', p.lt + 'px'); el.style.setProperty('--ct', p.ct + 'px'); el.style.setProperty('--o', p.o);
+  el.classList.toggle('center', k === 0); el.setAttribute('aria-selected', k === 0); el.tabIndex = Math.abs(k) <= 1 ? 0 : -1;
+  if (instant){ void el.offsetWidth; el.style.transition = ''; }
+}
+els.forEach(el => { const k = +el.dataset.slot; fill(el, GAMES[gi(k)]); pose(el, k, true);
+  const d = k === 0 ? .35 : .55 + Math.abs(k)*.05;
+  el.style.setProperty('--cd', d + 's'); el.style.setProperty('--ld', (d + .25) + 's'); el.style.setProperty('--rd', (d + .45) + 's'); });
+
+async function move(dir){
+  if (busy || !dir) return; busy = true;
+  els.forEach(el => el.classList.add('lock')); setTimeout(unlock, 950);
+  cur = gi(dir);
+  els.forEach(el => {
+    let k = +el.dataset.slot - dir;
+    if (k < -2 || k > 2){ k = k < -2 ? 2 : -2; fill(el, GAMES[gi(k)]); pose(el, k, true); }
+    else pose(el, k, false);
+  });
+  paintDots(); await swapTo(GAMES[cur]); warm();
+  busy = false;
+}
+function unlock(){ addEventListener('pointermove', () => els.forEach(el => el.classList.remove('lock')), { once:true }); }
+function paintDots(){ $('#dots').innerHTML = GAMES.map((g, i) => `<i class="${i === cur ? 'on' : ''}"></i>`).join(''); }
+paintDots();
+/* touch: drag the row of cards with a finger, release past ~50 px to change the game */
+let drag = null, swallowClick = false;
+const stageScale = () => parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--s')) || 1;
+hero.addEventListener('pointerdown', e => { if (e.pointerType !== 'touch' || busy) return; drag = { x:e.clientX, y:e.clientY, dx:0, on:false, t:performance.now() }; });
+hero.addEventListener('pointermove', e => {
+  if (!drag || e.pointerType !== 'touch') return;
+  const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+  if (!drag.on){ if (Math.abs(dx) < 8 || Math.abs(dx) < Math.abs(dy)) { if (Math.abs(dy) > 12) drag = null; return; } drag.on = true; hero.classList.add('dragging'); }
+  drag.dx = dx; box.style.transform = `translateX(${dx / stageScale()}px)`;
+});
+function endDrag(){
+  if (!drag) return; const d = drag; drag = null;
+  if (!d.on) return;
+  swallowClick = true; setTimeout(() => { swallowClick = false; }, 60);
+  hero.classList.remove('dragging');
+  const fast = Math.abs(d.dx) / Math.max(1, performance.now() - d.t) > .5;
+  box.style.transform = 'translateX(0px)';
+  if (Math.abs(d.dx) > 50 || (fast && Math.abs(d.dx) > 20)) move(d.dx < 0 ? 1 : -1);
+}
+hero.addEventListener('pointerup', endDrag); hero.addEventListener('pointercancel', endDrag);
+box.addEventListener('click', e => {
+  if (swallowClick) return;
+  const el = e.target.closest('.card'); if (!el) return; const k = +el.dataset.slot;
+  if (k === 0) openDemo();
+  else move(k > 0 ? 1 : -1);
+});
+addEventListener('keydown', e => { if (e.key === 'ArrowRight') move(1); else if (e.key === 'ArrowLeft') move(-1); });
+
+/* parallax: the game screen leans a little toward the cursor */
+addEventListener('pointermove', e => { if (RM || e.pointerType === 'touch') return;
+  const x = e.clientX/innerWidth - .5, y = e.clientY/innerHeight - .5;
+  media.style.setProperty('--px', (-x*14).toFixed(1) + 'px'); media.style.setProperty('--py', (-y*10).toFixed(1) + 'px'); });
+
+/* links that point to pages not designed yet */
+let tt = 0;
+function toast(msg){ const t = $('#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(tt); tt = setTimeout(() => t.classList.remove('on'), 1800); }
+document.querySelectorAll('.soon').forEach(a => a.addEventListener('click', e => { e.preventDefault(); toast(`${a.textContent.trim()}: coming soon`); }));
+
+/* boot: wait for the first screen and covers, then play the entrance */
+(async () => {
+  await Promise.all([...document.images].map(i => i.complete ? 0 : new Promise(r => { i.onload = i.onerror = r; })));
+  await swapTo(GAMES[0], true);
+  requestAnimationFrame(() => { document.body.classList.remove('pre'); setTimeout(() => document.body.classList.add('done'), 2000); });
+  const v0 = curLayer; const go = () => setTimeout(warm, 600);
+  if (v0 && v0.readyState >= 3) go(); else if (v0) v0.addEventListener('canplaythrough', go, { once:true });
+})();
+</script>
+</body>
+</html>
