@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet">
-<link rel="preload" as="image" href="a/p_titan.jpg">
+<link rel="preload" as="image" href="a/p_titan.jpg?v=2">
 <style>
 /* Built from Figma "16px LAB WEB" → Desktop - 3 (1440 × 1024). The stage keeps the design's coordinates and scales to the window. */
 :root{
@@ -265,7 +265,9 @@ const codecCheck = (async () => { try {
   const r = await navigator.mediaCapabilities.decodingInfo({ type:'file', video:{ contentType:'video/mp4; codecs="av01.0.09M.10"', width:1920, height:1082, bitrate:2600000, framerate:60 } });
   AV1 = r.supported && r.smooth && (r.powerEfficient || !matchMedia('(pointer: coarse)').matches);
 } catch (e) {} })();
-const srcOf = g => AV1 ? g.video.replace(/\.mp4$/, '.av1.mp4') : g.video;
+/* asset version: files in a/ are cached for a year, so a new encode gets a new URL */
+const V = '?v=2';
+const srcOf = g => (AV1 ? g.video.replace(/\.mp4$/, '.av1.mp4') : g.video) + V;
 
 /* ---------- game screens ---------- */
 const media = $('#media'), LAYER = {};
@@ -273,9 +275,9 @@ let curLayer = null, zTop = 1;
 function layer(g){
   if (LAYER[g.id]) return LAYER[g.id];
   const el = document.createElement('video');
-  el.poster = g.poster; el.muted = true; el.loop = true; el.playsInline = true; el.setAttribute('playsinline',''); el.preload = 'none'; el.disableRemotePlayback = true;
+  el.poster = g.poster + V; el.muted = true; el.loop = true; el.playsInline = true; el.setAttribute('playsinline',''); el.preload = 'none'; el.disableRemotePlayback = true;
   el.dataset.game = g.id;
-  el.addEventListener('error', () => { if (el.src.includes('.av1.')) { el.src = g.video; if (el === curLayer) el.play().catch(() => {}); } });
+  el.addEventListener('error', () => { if (el.src.includes('.av1.')) { el.src = g.video + V; if (el === curLayer) el.play().catch(() => {}); } });
   el.className = 'm off'; media.append(el); return LAYER[g.id] = el;
 }
 function arm(el, how){ if (!el.src){ el.preload = how; el.src = srcOf(GAMES.find(g => g.id === el.dataset.game)); } else if (how === 'auto') el.preload = 'auto'; }
@@ -313,7 +315,7 @@ hero.addEventListener('click', e => { if (swallowClick || e.target.closest('.car
 
 /* ---------- demo player ---------- */
 const modal = $('#modal'), mv = $('#mVideo');
-const demoOf = g => g.video.replace('a/', 'a/demo_');
+const demoOf = g => g.video.replace('a/', 'a/demo_') + V;
 /* get the demo ready while the cursor is still over the screen: load it and park it on the frame the screen is showing,
    so the click only has to start playback and the zoom-in runs without a hitch */
 const demoTime = () => curLayer && curLayer.currentTime ? curLayer.currentTime + LOOP_IN : 0;
