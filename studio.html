@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500&family=Geist+Mono&family=Inter:wght@500&display=swap" rel="stylesheet">
-<link rel="preload" as="image" href="a/lp_titan.jpg">
+<link rel="preload" as="image" href="a/lp_titan.jpg?v=5">
 <style>
 /* Built from Figma "16px LAB WEB" → Desktop - 5 (1440 × 1024).
    Everything inside the panel lives in design units on a "scene" that is W × H design px (W ≥ 1390, H ≥ 1000) and scales evenly with the window. */
@@ -21,6 +21,7 @@
   --pill:#e5e5e6;      /* Play Demo Slot */
   --key:#cfd0d1;       /* P key */
   --ink:#08090a;
+  --pink:#f42178;      /* the cube in our intro */
   --s:1; --W:1390px; --H:1000px;
   --ease:cubic-bezier(.2,.8,.2,1);
   --swift:cubic-bezier(.65,0,.35,1);
@@ -30,18 +31,34 @@
 @property --iris{syntax:'<number>';inherits:false;initial-value:2}
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;background:var(--page);color:#fff;font-family:'Geist',ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif;-webkit-font-smoothing:antialiased;overflow:hidden}
-img{display:block}
+img{display:block;-webkit-user-drag:none;user-select:none}
 a{color:inherit;text-decoration:none}
 button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
 :focus-visible{outline:2px solid rgba(255,255,255,.55);outline-offset:3px;border-radius:6px}
 
+/* ---------- intro: our cube flies in, flashes into the logo, and the logo's cube lands in the rail ---------- */
+.intro{position:fixed;inset:0;z-index:70;background:#000;transition:opacity .8s ease,visibility 0s linear .8s}
+.intro video{width:100%;height:100%;object-fit:contain;display:block}
+.intro.gone{opacity:0;visibility:hidden}
+.intro .skip{position:absolute;right:24px;bottom:22px;padding:7px 12px;border-radius:9999px;font-size:12px;color:#8a8a8a;box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);opacity:0;animation:fadein .6s ease 1s forwards;transition:color .2s,background .2s}
+.intro .skip:hover{color:#fff;background:rgba(255,255,255,.06)}
+@keyframes fadein{to{opacity:1}}
+.no-intro .intro{display:none}
+.flycube{position:fixed;left:0;top:0;z-index:71;transform-origin:0 0;pointer-events:none;color:var(--pink);will-change:transform}
+.flycube svg{display:block;width:100%;height:100%;filter:drop-shadow(0 0 18px rgba(244,33,120,.55))}
+#home.wait svg{opacity:0!important}
+
 /* ---------- rail: our logo, then one icon per client ---------- */
 .rail{position:fixed;z-index:10;left:calc(13px * var(--s));top:calc(25px * var(--s));width:24px;transform:scale(var(--s));transform-origin:0 0;display:flex;flex-direction:column;align-items:center;gap:12px}
 .rail .ico{position:relative;width:24px;height:24px;display:grid;place-items:center;color:var(--grey);transition:color .25s,transform .35s var(--ease)}
-.rail .ico svg{display:block}
+.rail .ico svg{display:block;transition:filter .3s}
 .rail .ico:hover{color:#d0d0d0;transform:scale(1.08)}
 .rail .ico.on{color:#fff}
+#home:hover{color:var(--pink)}
+#home:hover svg{filter:drop-shadow(0 0 8px rgba(244,33,120,.6))}
 .rail .sep{width:24px;height:1px;border-radius:8px;background:var(--grey)}
+/* a small bar marks the open client */
+.rail .ind{position:absolute;left:-13px;top:0;width:2px;height:16px;border-radius:0 2px 2px 0;background:#fff;transform:translateY(var(--iy,0px));transition:transform .55s var(--ease),opacity .3s}
 /* name of the client next to its icon */
 .rail .tip{position:absolute;left:34px;top:50%;transform:translate(-4px,-50%);white-space:nowrap;padding:5px 9px;border-radius:8px;background:rgba(28,28,30,.82);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);font-size:12px;line-height:14px;color:#e5e5e6;opacity:0;pointer-events:none;transition:opacity .18s,transform .3s var(--ease)}
 .rail .tip small{color:var(--grey);font-size:12px;margin-left:6px}
@@ -53,37 +70,55 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 
 /* the game screen: 1440 × 812, faded out by the design's ellipse (1240 × 811, linear to transparent) and darkened 10%.
    The fade is baked into the gameplay videos and their posters; screenshots get it from CSS (.media img.m). */
-.bg{position:absolute;left:calc(-152px + (var(--W) - 1390px) * .4);top:calc(36px + (var(--H) - 1000px) * .5);width:1440px;height:812px;
+.bg{position:absolute;left:calc(-152px + (var(--W) - 1390px) * .4);top:calc(36px + (var(--H) - 1000px) * .5);width:1440px;height:812px;mix-blend-mode:lighten;
   /* only for the entrance: the screen opens from the middle like an iris */
   -webkit-mask-image:radial-gradient(ellipse calc(43% * var(--iris)) calc(50% * var(--iris)) at 50% 50%,#000 55%,transparent);
   mask-image:radial-gradient(ellipse calc(43% * var(--iris)) calc(50% * var(--iris)) at 50% 50%,#000 55%,transparent);
   transition:--iris 1.8s cubic-bezier(.5,0,.15,1),opacity 1s ease,transform 2s var(--ease),filter 1.4s ease}
+body.ready .bg{-webkit-mask-image:none;mask-image:none}
 .bg .dim{position:absolute;inset:0;background:rgba(0,0,0,.1);pointer-events:none}
-/* the baked fade goes to black; 'lighten' lets it end in the panel colour, like the transparent fade in Figma */
-.bg{mix-blend-mode:lighten}
 .media{position:absolute;inset:0;transform:translate(var(--px,0px),var(--py,0px));transition:transform 1.2s var(--ease)}
-/* one layer per picture or gameplay; changing them: the old one blurs and drifts away, the new one arrives out of the same blur */
+/* one layer per picture or gameplay; within a game the old one blurs and drifts away and the new one arrives out of the same blur */
 .media .m{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform-origin:50% 45%;
   transition:filter .85s var(--out),opacity .7s ease,transform 1.15s var(--ease)}
 .media img.m{-webkit-mask-image:radial-gradient(ellipse 43.06% 49.94% at 50% 50%,#000,transparent);mask-image:radial-gradient(ellipse 43.06% 49.94% at 50% 50%,#000,transparent)}
-body.ready .bg{-webkit-mask-image:none;mask-image:none}
 .media .m.soft{filter:blur(22px) brightness(.85)}
 .media .m.from{opacity:0;filter:blur(30px) brightness(.7);transform:translateX(calc(var(--dir,0) * 60px)) scale(1.06);transition:none}
 .media .m.gone{opacity:0;filter:blur(30px) brightness(.5);transform:translateX(calc(var(--dir,0) * -60px)) scale(1.03);transition:filter .6s var(--out),opacity .55s ease .2s,transform 1s var(--ease)}
+.media .m.pop{animation:pop 1.1s var(--ease)}
+@keyframes pop{from{transform:scale(1.08);filter:brightness(1.6) saturate(1.2)}to{transform:none;filter:none}}
 .media .m.off{display:none}
+
+/* ---------- game change: the pink cube from our intro tumbles in, flashes, and the next game is there ---------- */
+.fx{position:absolute;z-index:6;left:calc(-152px + (var(--W) - 1390px) * .4 + 720px);top:calc(36px + (var(--H) - 1000px) * .5 + 406px);width:0;height:0;pointer-events:none;perspective:1000px;visibility:hidden}
+.fx.on{visibility:visible}
+.fx>*{position:absolute;left:0;top:0;opacity:0}
+.fx .glow{width:560px;height:560px;margin:-280px;border-radius:50%;background:radial-gradient(circle,rgba(255,70,170,.6) 0%,rgba(244,33,120,.2) 35%,transparent 70%)}
+.fx .bloom{width:2200px;height:1500px;margin:-750px -1100px;background:radial-gradient(ellipse at center,#fff 0%,#ffd1ee 6%,#ff7cc8 16%,rgba(244,33,120,.92) 30%,rgba(244,33,120,.45) 46%,rgba(244,33,120,0) 68%)}
+.fx .rays{width:1600px;height:1600px;margin:-800px;border-radius:50%;
+  background:repeating-conic-gradient(from 0deg,rgba(255,200,236,0) 0deg 6deg,rgba(255,200,236,.85) 7.5deg,rgba(255,200,236,0) 9deg 17deg);
+  -webkit-mask-image:radial-gradient(circle,#000 0%,rgba(0,0,0,.6) 22%,transparent 58%);mask-image:radial-gradient(circle,#000 0%,rgba(0,0,0,.6) 22%,transparent 58%);mix-blend-mode:screen}
+.fx .c3{width:120px;height:120px;margin:-60px;opacity:1;transform-style:preserve-3d}
+.fx .cube{position:absolute;inset:0;transform-style:preserve-3d}
+.fx .f{position:absolute;inset:0;border-radius:16px;box-shadow:inset 0 0 22px rgba(255,255,255,.28)}
+.fx .f.t{transform:rotateX(90deg) translateZ(60px);background:linear-gradient(135deg,#ffd0f2,#ff86da)}
+.fx .f.b{transform:rotateX(-90deg) translateZ(60px);background:#a90f5b}
+.fx .f.fr{transform:translateZ(60px);background:linear-gradient(160deg,#ff70cb,#f2268f)}
+.fx .f.bk{transform:rotateY(180deg) translateZ(60px);background:#c4146d}
+.fx .f.r{transform:rotateY(90deg) translateZ(60px);background:linear-gradient(160deg,#f0349c,#bd116a)}
+.fx .f.l{transform:rotateY(-90deg) translateZ(60px);background:linear-gradient(160deg,#ff5cbf,#d71b7c)}
+.fx .bit{width:10px;height:10px;margin:-5px;background:var(--pink);box-shadow:0 0 12px 2px rgba(244,33,120,.8)}
 
 /* ---------- game info (right) ---------- */
 .info{position:absolute;left:calc(var(--W) - 507px);top:calc(520px + (var(--H) - 1000px) * .5);width:424px;display:flex;flex-direction:column;align-items:flex-start}
 .info>*{transition:opacity .35s ease,transform .6s var(--ease),filter .4s ease}
 .info.swap>*{opacity:0;transform:translateY(10px);filter:blur(6px);transition-duration:.2s,.3s,.2s}
-.info>:nth-child(2){transition-delay:.04s}.info>:nth-child(3){transition-delay:.08s}.info>:nth-child(4){transition-delay:.12s}
-.info.swap>*{transition-delay:0s}
 .glogo{height:64px;width:auto;filter:drop-shadow(0 6px 14px rgba(0,0,0,.45))}
 .glogo.art{height:120px;margin-top:-56px}
 .desc{margin:24px 0 0;font-size:14px;line-height:20px;color:var(--text);max-width:424px;min-height:60px}
 .cta{position:relative;overflow:hidden;margin-top:20px;display:flex;align-items:center;gap:12px;padding:11px 16px;border-radius:9999px;background:var(--pill);border:1px solid var(--pill);color:var(--ink);font-family:'Inter',sans-serif;font-weight:500;font-size:14px;line-height:16px;transition:background .2s,transform .3s var(--ease),box-shadow .3s}
 .cta>span{display:flex;align-items:center;gap:8px}
-.cta kbd{display:grid;place-items:center;width:16px;height:16px;border-radius:4px;background:var(--key);font:500 12px/16px 'Inter',sans-serif;color:var(--ink)}
+kbd{display:grid;place-items:center;min-width:16px;height:16px;padding:0 4px;border-radius:4px;background:var(--key);font:500 12px/16px 'Inter',sans-serif;color:var(--ink)}
 .cta::before{content:"";position:absolute;top:0;bottom:0;left:-60%;width:45%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.95),transparent);transform:skewX(-18deg);opacity:0;pointer-events:none}
 .cta:hover{background:#fff;transform:translateY(-1px);box-shadow:0 10px 28px -8px rgba(255,255,255,.3)}
 .cta:hover::before{animation:glint .7s var(--out)}
@@ -96,10 +131,25 @@ body.ready .bg{-webkit-mask-image:none;mask-image:none}
 .meta a{display:grid;place-items:center;width:16px;height:16px;opacity:.9;transition:opacity .2s,transform .3s var(--ease)}
 .meta a:hover{opacity:1;transform:translateY(-1px)}
 
-/* ---------- film strip: gameplay first, then screens ---------- */
-.strip{position:absolute;left:0;right:0;bottom:24px;height:200px;
+/* ---------- next game (top right) ---------- */
+.nextg{position:absolute;right:40px;top:28px;z-index:4;display:flex;align-items:center;gap:12px;padding:6px 6px 6px 14px;border-radius:9999px;background:rgba(255,255,255,.035);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);transition:background .25s,box-shadow .25s,transform .35s var(--ease)}
+.nextg .nk{font-family:'Geist Mono',ui-monospace,monospace;font-size:11px;line-height:14px;color:var(--grey)}
+.nextg .nn{font-size:13px;line-height:16px;font-weight:500;color:#e5e5e6;transition:opacity .25s,filter .25s}
+.nextg .na{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.08);color:#fff;transition:background .25s,color .25s}
+.nextg .na svg{width:12px;height:12px;transition:transform .35s var(--ease)}
+.nextg kbd{background:rgba(255,255,255,.1);color:#a8a8a8}
+.nextg:hover{background:rgba(255,255,255,.07);box-shadow:inset 0 0 0 1px rgba(255,255,255,.16)}
+.nextg:hover .na{background:var(--pill);color:var(--ink)}
+.nextg:hover .na svg{transform:translateX(2px)}
+.nextg.swap .nn{opacity:0;filter:blur(4px)}
+
+/* ---------- film strip: gameplay first, then screens; scrolls with the wheel, a drag or a finger ---------- */
+.strip{position:absolute;left:0;right:0;bottom:0;height:226px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;overscroll-behavior-x:contain;cursor:grab;
   -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 24px,#000 calc(100% - 140px),transparent);mask-image:linear-gradient(90deg,transparent 0,#000 24px,#000 calc(100% - 140px),transparent)}
-.track{position:absolute;left:0;bottom:0;display:flex;align-items:flex-end;gap:56px;transform:translateX(var(--tx,0px));transition:transform .8s var(--ease);will-change:transform}
+.strip::-webkit-scrollbar{display:none}
+.strip.drag{cursor:grabbing}
+.strip.drag .item{pointer-events:none}
+.track{display:flex;align-items:flex-end;gap:56px;height:100%;width:max-content;padding:0 max(140px, calc(var(--W) - 520px)) 24px 24px}
 .item{flex:none;display:flex;flex-direction:column;align-items:flex-start;text-align:left;opacity:.5;transition:opacity .35s,margin .6s var(--ease)}
 .item .th{position:relative;width:200px;height:110px;border-radius:12px;overflow:hidden;background:#1a1a1b;transition:width .6s var(--ease),height .6s var(--ease),transform .35s var(--ease),box-shadow .4s}
 .item .th img{width:100%;height:100%;object-fit:cover;transition:transform .8s var(--ease)}
@@ -118,6 +168,12 @@ body.ready .bg{-webkit-mask-image:none;mask-image:none}
 .item .prog i{display:block;height:100%;width:100%;background:#fff;transform-origin:0 50%;transform:scaleX(var(--p,0))}
 .item.on .prog{opacity:1}
 .item.on .badge{opacity:0}
+/* the last card leads to the next game */
+.item.next .th::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(13,13,13,.2),rgba(13,13,13,.75))}
+.item.next .go{position:absolute;z-index:1;right:12px;top:50%;width:32px;height:32px;margin-top:-16px;border-radius:50%;display:grid;place-items:center;background:var(--pill);color:var(--ink);transition:transform .35s var(--ease)}
+.item.next .go svg{width:13px;height:13px}
+.item.next:hover .go{transform:translateX(4px)}
+.item.next .k{color:var(--pink)}
 
 /* ---------- demo player: grows out of the game screen and shrinks back into it ---------- */
 .modal{position:fixed;inset:0;z-index:40;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;visibility:hidden;pointer-events:none;transition:visibility 0s linear .75s}
@@ -137,33 +193,38 @@ body.ready .bg{-webkit-mask-image:none;mask-image:none}
 .pre .panel{opacity:0;transform:translateX(14px)}
 .panel{transition:opacity .9s ease,transform 1.1s var(--ease)}
 .pre .rail>*{opacity:0;transform:translateY(-8px)}
-.rail>*{transition:opacity .6s ease var(--d,0s),transform .7s var(--ease) var(--d,0s),color .25s}
-.pre .info>*{opacity:0;transform:translateY(14px);filter:blur(8px)}
+.rail>*:not(.ind){transition:opacity .6s ease var(--d,0s),transform .7s var(--ease) var(--d,0s),color .25s}
+.pre .info>*,.pre .nextg{opacity:0;transform:translateY(14px);filter:blur(8px)}
 .pre .item{opacity:0;transform:translateY(30px)}
 .item{transition:opacity .35s,margin .6s var(--ease),transform .9s var(--ease)}
-body:not(.pre) .info>*{transition-delay:calc(var(--i,0) * .07s + .9s)}
-body.ready .info>*{transition-delay:0s}
+body:not(.pre):not(.ready) .info>*{transition-delay:calc(var(--i,0) * .07s + .9s)}
+body:not(.pre):not(.ready) .nextg{transition-delay:1.3s}
 body.ready .info>:nth-child(2){transition-delay:.04s}body.ready .info>:nth-child(3){transition-delay:.08s}body.ready .info>:nth-child(4){transition-delay:.12s}
 body.ready .info.swap>*{transition-delay:0s}
 
 /* ---------- phones: rail on top, screen, info, strip ---------- */
 @media (max-width:760px){
-  html,body{overflow:hidden}
   .rail{flex-direction:row;left:16px;top:14px;transform:none;width:auto;gap:16px}
   .rail .sep{width:1px;height:20px}
   .rail .tip{display:none}
+  .rail .ind{left:0;top:30px;width:16px;height:2px;border-radius:2px;transform:translateX(var(--ix,0px))}
   .panel{left:0;top:52px;bottom:0;border-radius:16px 16px 0 0}
   .scene{transform:none;width:100%;height:100%}
   .bg{left:50%;top:0;width:190vw;height:calc(190vw * 812 / 1440);transform:translateX(-50%);margin-top:-4vw}
   .pre .bg{transform:translateX(-50%) scale(1.06)}
   .bg .dim{background:linear-gradient(180deg,rgba(0,0,0,.1) 30%,rgba(13,13,13,.9) 72%)}
-  .info{left:20px;right:20px;top:auto;bottom:206px;width:auto}
+  .fx{left:50%;top:calc(190vw * 406 / 1440 - 4vw);transform:scale(.55)}
+  .info{left:20px;right:20px;top:auto;bottom:212px;width:auto}
   .glogo{height:52px}
   .glogo.art{height:96px;margin-top:0}
   .desc{margin-top:16px;font-size:13px;line-height:19px;min-height:0}
+  .cta kbd,.nextg kbd{display:none}
   .meta{margin-top:16px}
-  .strip{bottom:20px;height:170px;-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 16px,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(90deg,transparent 0,#000 16px,#000 calc(100% - 40px),transparent)}
-  .track{gap:16px}
+  .nextg{position:fixed;right:12px;top:9px;padding:4px 4px 4px 12px;gap:8px}
+  .nextg .nk{display:none}
+  .nextg .na{width:26px;height:26px}
+  .strip{height:190px;-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 16px,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(90deg,transparent 0,#000 16px,#000 calc(100% - 40px),transparent)}
+  .track{gap:16px;padding:0 calc(100vw - 196px) 20px 20px}
   .item .th{width:150px;height:84px;border-radius:10px}
   .item.on .th{width:176px;height:99px}
 }
@@ -171,7 +232,9 @@ body.ready .info.swap>*{transition-delay:0s}
 </style>
 </head>
 <body class="pre">
+<div class="intro" id="intro" aria-hidden="true"><video id="introV" muted playsinline preload="auto"></video><button class="skip" id="skip">Skip intro</button></div>
 <aside class="rail" id="rail" aria-label="Clients">
+  <i class="ind" id="ind" aria-hidden="true"></i>
   <a class="ico" id="home" href="./" aria-label="16px Labs" style="--d:.1s"><svg width="24" height="21" viewBox="0 0 24 21" fill="none" aria-hidden="true"><path d="M10.3305 4.30803L9.32068 6.03086L7.30037 6.03098L8.31064 4.30789L10.3305 4.30803Z" fill="currentColor"/><path fill-rule="evenodd" clip-rule="evenodd" d="M16.9256 0C17.5336 0 18.0963 .323 18.4047 .8491L23.4551 9.46425C23.7714 10.0037 23.7714 10.6728 23.4551 11.2122L18.4044 19.8278C18.096 20.3539 17.5333 20.6769 16.9252 20.6769L6.76672 20.6767C6.15868 20.6767 5.59603 20.3537 5.28762 19.8276L.237161 11.2125C-.0790482 10.6731-.0790539 10.0039.237145 9.46453L5.28749.849164C5.5959.323048 6.15858 0 6.76664 0L16.9256 0ZM14.8764 8.61505L15.8867 10.3385L14.8764 12.0616L17.9066 17.2304L18.9168 15.5074L17.9068 13.7844L19.9269 10.3385L20.9369 12.0614L21.9472 10.3384L19.9268 6.89198L16.8967 12.0614L15.8867 10.3385L18.9168 5.16901L17.9067 3.44605L14.8764 8.61505ZM9.82598 18.9532L11.8466 18.9535L7.8061 12.0612L5.78579 12.0614L9.82598 18.9532ZM2.7554 8.61528L10.8362 8.61505L14.8768 1.72295L6.79575 1.72274L2.7554 8.61528Z" fill="currentColor"/></svg></a>
   <i class="sep" style="--d:.16s"></i>
 </aside>
@@ -179,6 +242,8 @@ body.ready .info.swap>*{transition-delay:0s}
 <main class="panel" id="panel">
   <div class="scene" id="scene">
     <div class="bg" id="bg"><div class="media" id="media" aria-hidden="true"></div><div class="dim"></div></div>
+    <div class="fx" id="fx" aria-hidden="true"><div class="glow"></div><div class="rays"></div><div class="c3"><div class="cube"><i class="f t"></i><i class="f b"></i><i class="f l"></i><i class="f r"></i><i class="f fr"></i><i class="f bk"></i></div></div><div class="bloom"></div></div>
+    <button class="nextg" id="nextg" aria-label="Next game"><span class="nk">NEXT GAME</span><span class="nn" id="nextName"></span><kbd>N</kbd><span class="na"><svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M1 6h9.5M6.5 2 10.5 6l-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
     <section class="info" id="info" aria-live="polite">
       <img class="glogo" id="glogo" alt="" style="--i:0">
       <p class="desc" id="desc" style="--i:1"></p>
@@ -201,26 +266,32 @@ const ICON = {
   globe:'<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M14.1667 8C14.1667 11.4059 11.4057 14.1668 8 14.1668C4.59425 14.1668 1.83333 11.4059 1.83333 8C1.83333 4.59441 4.59425 1.8335 8 1.8335C11.4057 1.8335 14.1667 4.59441 14.1667 8Z" stroke="#C4C3C3" stroke-linecap="square"/><path d="M8 14C6.52724 14 5.33333 11.3137 5.33333 8C5.33333 4.68629 6.52724 2 8 2C9.47273 2 10.6667 4.68629 10.6667 8C10.6667 11.3137 9.47273 14 8 14Z" stroke="#C4C3C3" stroke-linecap="square"/><path d="M14 8H2" stroke="#C4C3C3" stroke-linecap="square"/></svg>',
   play:'<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6.16 1.58C4.94.79 3.33 1.66 3.33 3.12v9.76c0 1.45 1.61 2.33 2.83 1.54l7.55-4.88c1.12-.72 1.12-2.36 0-3.08L6.16 1.58Z" fill="currentColor"/></svg>'
 };
+ICON.arrow = '<svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M1 6h9.5M6.5 2 10.5 6l-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 /* clients in the rail (top to bottom) and the games we made for each.
-   Descriptions other than Titan Storm, the X / website links and the screen captions are placeholders. */
+   Descriptions other than Titan Storm, the X / website links and the non-Titan screens are placeholders. */
 const CLIENTS = [
   { id:'cc', name:'Creative City', icon:'cc', x:'#', web:'#', games:['district'] },
   { id:'freaky', name:'Freaky Labs', icon:'flask', x:'#', web:'#', games:['titan', 'wildjohn'] },
   { id:'void', name:'Void Studios', icon:'cc', x:'#', web:'#', games:['mystic'] }
 ];
 const GAMES = {
-  titan:{ name:'Titan Storm', logo:'a/logo_titan.webp', desc:'Step into a world of ancient temples, towering titans, and gathering storms. In Titan Storm, every spin brings a flash of lightning and the chance to uncover what lies beyond the ruins.' },
+  titan:{ name:'Titan Storm', logo:'a/logo_titan.webp', desc:'Step into a world of ancient temples, towering titans, and gathering storms. In Titan Storm, every spin brings a flash of lightning and the chance to uncover what lies beyond the ruins.',
+    /* real screens (8K masters, served as 1080p / 4K) */
+    shots:[['BASE GAME', true], ['LINE WIN', true], ['WILD WIN', true], ['FREE SPINS', true], ['MAX WIN', true]] },
   wildjohn:{ name:'Wild John', logo:'a/art_wildjohn.webp', art:true, desc:'Grab your hat and follow Wild John deep into the jungle. Coins drop onto the reels, free spins open the trail, and every spin gets him one step closer to the lost treasure.' },
   district:{ name:'District 33', logo:'a/logo_district.webp', desc:'Welcome to District 33, where the streets never sleep and every corner hides a hustle. Spin through the back alleys, trigger Super Freak Spins and watch the whole block pay out.' },
   mystic:{ name:'Mystic Wilds', logo:'a/logo_mystic.webp', desc:'Deep in an enchanted temple, spirit flames guard the reels. Wild vines climb the grid, multipliers stack up, and every spin pulls you further into the wilds.' }
 };
-const SHOTS = 4;
 /* film strip items for one client: per game, the gameplay first, then its screens */
+function shotsOf(g){ return GAMES[g].shots || [1, 2, 3, 4].map(n => [`SCREEN 0${n}`, false]); }
 function itemsOf(c){ return c.games.flatMap(g => [{ g, kind:'video', k:'GAMEPLAY 01', full:`a/loop_${g}.mp4`, poster:`a/lp_${g}.jpg`, thumb:`a/shots/gp_${g}_t.webp` },
-  ...Array.from({ length:SHOTS }, (_, i) => ({ g, kind:'image', k:`SCREEN ${String(i + 1).padStart(2, '0')}`, full:`a/shots/${g}_${i + 1}.webp`, thumb:`a/shots/${g}_${i + 1}_t.webp` }))]); }
+  ...shotsOf(g).map(([k, hd], i) => ({ g, kind:'image', k, full:`a/shots/${g}_${i + 1}.webp`, full4k: hd ? `a/shots/${g}_${i + 1}_4k.webp` : null, thumb:`a/shots/${g}_${i + 1}_t.webp` }))]); }
+/* every game in rail order; "next game" walks through it and wraps around */
+const ORDER = CLIENTS.flatMap((c, ci) => c.games.map(g => ({ ci, g })));
+const nextOf = g => ORDER[(ORDER.findIndex(o => o.g === g) + 1) % ORDER.length];
 /* the loops start 0.75 s into the recording (their tail crossfades into the head); the demo files are the untouched recordings */
 const LOOP_IN = .75;
-const V = '?v=4';
+const V = '?v=5';
 
 const $ = s => document.querySelector(s);
 const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -232,12 +303,14 @@ const isPhone = () => innerWidth <= 760;
 let S = 1;
 function fit(){
   const vw = innerWidth, vh = innerHeight, root = document.documentElement.style;
-  if (isPhone()){ S = 1; root.setProperty('--s', 1); root.setProperty('--W', '100%'); root.setProperty('--H', '100%'); placeTrack(true); return; }
-  S = Math.min(1.75, vh/1024, vw/1230);
-  root.setProperty('--s', S);
-  root.setProperty('--W', ((vw - 50*S) / S).toFixed(2) + 'px');
-  root.setProperty('--H', ((vh - 24*S) / S).toFixed(2) + 'px');
-  placeTrack(true);
+  if (isPhone()){ S = 1; root.setProperty('--s', 1); root.setProperty('--W', '100%'); root.setProperty('--H', '100%'); }
+  else {
+    S = Math.min(1.75, vh/1024, vw/1230);
+    root.setProperty('--s', S);
+    root.setProperty('--W', ((vw - 50*S) / S).toFixed(2) + 'px');
+    root.setProperty('--H', ((vh - 24*S) / S).toFixed(2) + 'px');
+  }
+  scrollToSel(true); placeInd();
 }
 addEventListener('resize', fit);
 
@@ -248,6 +321,8 @@ const codecCheck = (async () => { try {
   const r = await navigator.mediaCapabilities.decodingInfo({ type:'file', video:{ contentType:'video/mp4; codecs="av01.0.09M.10"', width:1920, height:1082, bitrate:2600000, framerate:60 } });
   AV1 = r.supported && r.smooth && (r.powerEfficient || !matchMedia('(pointer: coarse)').matches);
 } catch (e) {} })();
+/* 4K screens only where the screen is shown wider than ~2000 device pixels */
+const want4k = () => (isPhone() ? innerWidth * 1.9 : 1440 * S) * (devicePixelRatio || 1) > 2000;
 
 /* ---------- background layers ---------- */
 const media = $('#media'), LAYER = {};
@@ -262,7 +337,8 @@ function layerFor(it){
     el.addEventListener('error', () => { if (el.src.includes('.av1.')){ el.src = it.full + V; if (el === curLayer) el.play().catch(() => {}); } });
     el.addEventListener('timeupdate', () => { if (el === curLayer && el.duration) progress(el.currentTime / el.duration); });
   } else {
-    el = new Image(); el.decoding = 'async'; el.alt = ''; el.dataset.src = it.full;
+    el = new Image(); el.decoding = 'async'; el.alt = ''; el.draggable = false;
+    el.dataset.src = it.full4k && want4k() ? it.full4k : it.full;
   }
   el.className = 'm off'; media.append(el); return LAYER[key] = el;
 }
@@ -276,23 +352,31 @@ function whenReady(el, ms){ return ready(el) ? Promise.resolve() : new Promise(r
   const evs = el.tagName === 'VIDEO' ? ['canplay', 'playing'] : ['load', 'error'];
   const done = () => { clearTimeout(t); evs.forEach(e => el.removeEventListener(e, done)); r(); };
   const t = setTimeout(done, ms); evs.forEach(e => el.addEventListener(e, done)); }); }
-async function swapTo(it, dir = 0){
+function hide(el){ if (el.tagName === 'VIDEO') el.pause(); el.classList.add('off'); el.classList.remove('gone', 'from', 'soft', 'pop'); }
+async function swapTo(it, dir = 0, instant = false){
   const next = layerFor(it), prev = curLayer;
   if (next === prev) return;
   media.style.setProperty('--dir', dir);
-  next.classList.remove('off', 'gone', 'soft'); next.classList.add('from'); next.style.zIndex = ++zTop;
-  play(next); void next.offsetWidth;
-  if (prev) prev.classList.add('gone');
+  next.classList.remove('off', 'gone', 'soft', 'pop'); next.style.zIndex = ++zTop;
   curLayer = next;
+  if (instant){
+    /* under the flash of a game change: no blur, the new game just is there */
+    play(next); if (prev) hide(prev);
+    if (!RM){ void next.offsetWidth; next.classList.add('pop'); }
+    if (!ready(next)){ next.classList.add('soft'); await whenReady(next, 2500); next.classList.remove('soft'); }
+    return;
+  }
+  next.classList.add('from'); play(next); void next.offsetWidth;
+  if (prev) prev.classList.add('gone');
   await raf2();
   next.classList.remove('from');
   if (!ready(next)){ next.classList.add('soft'); await whenReady(next, 2500); await wait(100); next.classList.remove('soft'); }
-  if (prev){ await wait(1000); if (prev !== curLayer){ if (prev.tagName === 'VIDEO') prev.pause(); prev.classList.add('off'); prev.classList.remove('gone'); } }
+  if (prev){ await wait(1000); if (prev !== curLayer) hide(prev); }
 }
 document.addEventListener('visibilitychange', () => { if (!curLayer || curLayer.tagName !== 'VIDEO' || modal.classList.contains('on')) return; document.hidden ? curLayer.pause() : play(curLayer); });
 
 /* ---------- rail ---------- */
-const rail = $('#rail');
+const rail = $('#rail'), ind = $('#ind');
 CLIENTS.forEach((c, i) => {
   const b = document.createElement('button');
   b.className = 'ico'; b.dataset.client = c.id; b.style.setProperty('--d', (.2 + i*.06) + 's');
@@ -301,85 +385,169 @@ CLIENTS.forEach((c, i) => {
   b.addEventListener('click', () => openClient(i));
   rail.append(b);
 });
-$('#home').addEventListener('click', e => { e.preventDefault(); openClient(1); });
+$('#home').addEventListener('click', e => { e.preventDefault(); goGame(1, 'titan', -1); });
+function placeInd(){
+  const b = rail.querySelector('.ico.on'); if (!b) return;
+  ind.style.setProperty('--iy', (b.offsetTop + 4) + 'px'); ind.style.setProperty('--ix', (b.offsetLeft + 4) + 'px');
+}
 
 /* ---------- film strip ---------- */
-const track = $('#track'), info = $('#info');
-let client = -1, items = [], sel = -1, game = null;
+const strip = $('#strip'), track = $('#track'), info = $('#info');
+let client = -1, items = [], sel = -1, game = null, busy = false;
 function buildStrip(){
+  const n = nextOf(items[items.length - 1].g), N = GAMES[n.g];
   track.innerHTML = items.map((it, i) => `<button class="item" role="tab" data-i="${i}" aria-label="${GAMES[it.g].name}, ${it.k.toLowerCase()}">
-    <span class="th"><img src="${it.thumb}${V}" alt="" loading="lazy" decoding="async">${it.kind === 'video' ? `<span class="badge">${ICON.play}Gameplay</span><span class="prog"><i></i></span>` : ''}</span>
-    <span class="k">${it.k}</span><span class="t">${GAMES[it.g].name}</span></button>`).join('');
+    <span class="th"><img src="${it.thumb}${V}" alt="" loading="lazy" decoding="async" draggable="false">${it.kind === 'video' ? `<span class="badge">${ICON.play}Gameplay</span><span class="prog"><i></i></span>` : ''}</span>
+    <span class="k">${it.k}</span><span class="t">${GAMES[it.g].name}</span></button>`).join('')
+    + `<button class="item next" data-next aria-label="Next game: ${N.name}"><span class="th"><img src="a/shots/gp_${n.g}_t.webp${V}" alt="" loading="lazy" draggable="false"><span class="go">${ICON.arrow}</span></span><span class="k">NEXT GAME</span><span class="t">${N.name}</span></button>`;
 }
-track.addEventListener('click', e => { const b = e.target.closest('.item'); if (b) select(+b.dataset.i); });
-/* the chosen item sits in the second place of the strip (design x 280), the one before it peeks in from the left */
-function placeTrack(instant){
+track.addEventListener('click', e => {
+  if (dragged) return;
+  const b = e.target.closest('.item'); if (!b) return;
+  if (b.hasAttribute('data-next')) return goNext();
+  select(+b.dataset.i);
+});
+/* the chosen item sits in the second place of the strip (design x 280), the one before it peeks in from the left;
+   every item before it is small (200 wide + 56 gap; 150 + 16 on phones), so its place is known without measuring */
+let scrollAnim = 0;
+function scrollToSel(instant){
   if (sel < 0) return;
-  /* every item before the chosen one is small (200 wide + 56 gap; 150 + 16 on phones), so its place is known without measuring */
-  const x = isPhone() ? 20 - sel * 166 : (sel === 0 ? 24 : 280 - sel * 256);
-  if (instant) track.style.transition = 'none';
-  track.style.setProperty('--tx', x + 'px');
-  if (instant){ void track.offsetWidth; track.style.transition = ''; }
+  const target = isPhone() ? sel * 166 : Math.max(0, sel * 256 - 256);
+  cancelAnimationFrame(scrollAnim);
+  if (instant || RM){ strip.scrollLeft = target; return; }
+  const from = strip.scrollLeft, t0 = performance.now(), D = 750;
+  const step = now => { const k = Math.min(1, (now - t0) / D), e = 1 - Math.pow(1 - k, 4); strip.scrollLeft = from + (target - from) * e; if (k < 1) scrollAnim = requestAnimationFrame(step); };
+  scrollAnim = requestAnimationFrame(step);
 }
-function progress(p){ const it = track.children[sel]; if (it) it.style.setProperty('--p', p.toFixed(4)); }
+/* wheel: vertical wheels scroll the strip sideways */
+strip.addEventListener('wheel', e => {
+  const d = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY; if (!d) return;
+  e.preventDefault(); cancelAnimationFrame(scrollAnim);
+  strip.scrollLeft += (e.deltaMode === 1 ? d * 40 : d) / S;
+}, { passive:false });
+/* mouse: grab and drag; a drag does not count as a click */
+let md = null, dragged = false;
+strip.addEventListener('pointerdown', e => { if (e.pointerType !== 'mouse' || e.button !== 0) return; md = { x:e.clientX, sl:strip.scrollLeft, moved:false }; dragged = false; });
+addEventListener('pointermove', e => { if (!md) return; const dx = e.clientX - md.x;
+  if (!md.moved && Math.abs(dx) > 5){ md.moved = true; strip.classList.add('drag'); cancelAnimationFrame(scrollAnim); }
+  if (md.moved) strip.scrollLeft = md.sl - dx / S; });
+addEventListener('pointerup', () => { if (md && md.moved){ dragged = true; setTimeout(() => { dragged = false; }, 60); } md = null; strip.classList.remove('drag'); });
+strip.addEventListener('touchstart', () => cancelAnimationFrame(scrollAnim), { passive:true });
 
-async function select(i, dir){
+function progress(p){ const it = track.children[sel]; if (it) it.style.setProperty('--p', p.toFixed(4)); }
+function select(i, dir, opt = {}){
   if (i < 0 || i >= items.length || i === sel) return;
+  const it = items[i];
+  /* another game: go through the cube */
+  if (game && it.g !== game && !opt.instant) return goGame(client, it.g, dir ?? (Math.sign(i - sel) || 1), i);
   const d = dir ?? Math.sign(i - sel);
   [...track.children].forEach((b, k) => { b.classList.toggle('on', k === i); b.setAttribute('aria-selected', k === i); });
   sel = i;
-  /* the width change of the chosen item settles first, then the strip slides to it */
-  placeTrack(false);
-  const it = items[i];
-  if (it.g !== game) showGame(it.g);
-  swapTo(it, d);
+  scrollToSel(opt.instant);
+  if (it.g !== game) showGame(it.g, opt.instant ? 'fill' : 'swap');
+  swapTo(it, d, opt.instant);
   warm();
 }
-function warm(){ [sel + 1, sel - 1].forEach(k => { const it = items[k]; if (it) arm(layerFor(it), 'metadata'); }); }
+function warm(){ [sel + 1, sel - 1].forEach(k => { const it = items[k]; if (it) arm(layerFor(it), it.kind === 'video' ? 'metadata' : 'auto'); }); }
 
 /* ---------- game info ---------- */
 let infoToken = 0;
-async function showGame(g){
+async function showGame(g, mode){
   game = g; const G = GAMES[g], c = CLIENTS[client], t = ++infoToken;
   const fill = () => {
     const logo = $('#glogo'); logo.src = G.logo; logo.alt = G.name; logo.classList.toggle('art', !!G.art);
     $('#desc').textContent = G.desc;
     $('#meta').innerHTML = `<span class="who">${ICON[c.icon].replace('width="23" height="23"', 'width="16" height="16"')}${c.name}</span><i class="bar"></i><a href="${c.x}" aria-label="${c.name} on X" class="soon">${ICON.x}</a><a href="${c.web}" aria-label="${c.name} website" class="soon">${ICON.globe}</a>`;
     $('#meta').querySelectorAll('.soon').forEach(a => a.addEventListener('click', e => { if (a.getAttribute('href') === '#'){ e.preventDefault(); toast('Link coming soon'); } }));
+    const n = nextOf(g); $('#nextName').textContent = GAMES[n.g].name; $('#nextg').setAttribute('aria-label', `Next game: ${GAMES[n.g].name}`);
   };
-  if (!document.body.classList.contains('ready')){ fill(); return; }
-  info.classList.add('swap'); await wait(230); if (t !== infoToken) return;
-  fill(); await raf2(); info.classList.remove('swap');
+  if (mode === 'fill' || !document.body.classList.contains('ready')){ fill(); return; }
+  info.classList.add('swap'); $('#nextg').classList.add('swap'); await wait(230); if (t !== infoToken) return;
+  fill(); await raf2(); info.classList.remove('swap'); $('#nextg').classList.remove('swap');
 }
 
-function openClient(i, first){
-  if (i === client) return;
-  const dir = client < 0 ? 0 : Math.sign(i - client);
+function openClient(i, opt = {}){
+  if (i === client && !opt.idx) return;
+  if (!opt.instant && !opt.first) return goGame(i, CLIENTS[i].games[0], Math.sign(i - client) || 1);
   client = i; const c = CLIENTS[i];
   rail.querySelectorAll('[data-client]').forEach(b => b.classList.toggle('on', b.dataset.client === c.id));
+  placeInd();
   items = itemsOf(c); sel = -1; game = null;
-  const swapStrip = () => { buildStrip(); select(0, dir); placeTrack(true); };
-  if (first || RM){ swapStrip(); return; }
-  track.animate([{ opacity:1, filter:'blur(0px)', translate:'0 0' }, { opacity:0, filter:'blur(8px)', translate:`${-dir * 40}px 0` }], { duration:220, easing:'ease-in', fill:'forwards' })
-    .finished.then(a => { swapStrip(); track.getAnimations().forEach(x => x.cancel());
-      track.animate([{ opacity:0, filter:'blur(8px)', translate:`${dir * 60}px 0` }, { opacity:1, filter:'blur(0px)', translate:'0 0' }], { duration:650, easing:'cubic-bezier(.2,.8,.2,1)' }); });
+  buildStrip();
+  select(opt.idx || 0, 1, { instant:true });
+  if (!opt.first && !RM) [...track.children].forEach((b, k) => b.animate([{ opacity:0, transform:'translateY(26px)', filter:'blur(6px)' }, { opacity:b.classList.contains('on') ? 1 : .5, transform:'none', filter:'blur(0px)' }], { duration:700, delay:120 + k*45, easing:'cubic-bezier(.2,.8,.2,1)', fill:'backwards' }));
+}
+
+/* ---------- game change: our intro's cube ---------- */
+const fx = $('#fx');
+function goNext(){ const n = nextOf(game); goGame(n.ci, n.g, 1); }
+async function goGame(ci, g, dir = 1, idx){
+  if (busy || modal.classList.contains('on')) return;
+  if (ci === client && g === game) return;
+  busy = true;
+  const swap = () => {
+    if (ci !== client) openClient(ci, { instant:true, idx: idx ?? itemsOf(CLIENTS[ci]).findIndex(it => it.g === g) });
+    else select(idx ?? items.findIndex(it => it.g === g), dir, { instant:true });
+  };
+  if (RM){ swap(); busy = false; return; }
+  info.classList.add('swap'); $('#nextg').classList.add('swap');
+  await cubeFx(dir, swap);
+  info.classList.remove('swap'); $('#nextg').classList.remove('swap');
+  busy = false;
+}
+let fxToken = 0;
+function cubeFx(dir, atPeak){
+  const tok = ++fxToken;
+  return new Promise(res => {
+    const c3 = fx.querySelector('.c3'), cube = fx.querySelector('.cube'), glow = fx.querySelector('.glow'), bloom = fx.querySelector('.bloom'), rays = fx.querySelector('.rays');
+    fx.classList.add('on');
+    const T = 620;                                   /* the cube reaches the middle */
+    const sx = dir * 560;
+    c3.animate([
+      { transform:`translate3d(${sx}px,-170px,-1100px) scale(.5)`, opacity:0 },
+      { transform:`translate3d(${sx * .7}px,-120px,-760px) scale(.6)`, opacity:1, offset:.18 },
+      { transform:'translate3d(0,0,0) scale(1)', opacity:1, offset:.86 },
+      { transform:'translate3d(0,0,60px) scale(.25)', opacity:0 }
+    ], { duration:T + 120, easing:'cubic-bezier(.45,0,.25,1)', fill:'forwards' });
+    cube.animate([{ transform:'rotateX(-25deg) rotateY(-30deg) rotateZ(12deg)' }, { transform:`rotateX(${-25 + 300}deg) rotateY(${-30 + dir * 400}deg) rotateZ(52deg)` }],
+      { duration:T + 120, easing:'cubic-bezier(.3,0,.3,1)', fill:'forwards' });
+    glow.animate([{ opacity:0, transform:'scale(.4)' }, { opacity:1, transform:'scale(1)', offset:.75 }, { opacity:0, transform:'scale(1.6)' }], { duration:T + 520, easing:'ease-out', fill:'forwards' });
+    bloom.animate([{ opacity:0, transform:'scale(.45)' }, { opacity:1, transform:'scale(1)', offset:.22 }, { opacity:.92, transform:'scale(1.06)', offset:.38 }, { opacity:0, transform:'scale(1.35)' }],
+      { duration:900, delay:T - 140, easing:'cubic-bezier(.2,.6,.2,1)', fill:'both' });
+    rays.animate([{ opacity:0, transform:'scale(.35) rotate(0deg)' }, { opacity:.95, transform:'scale(.9) rotate(10deg)', offset:.3 }, { opacity:0, transform:'scale(1.4) rotate(26deg)' }],
+      { duration:1000, delay:T - 100, easing:'cubic-bezier(.2,.7,.2,1)', fill:'both' });
+    /* the cube bursts into a few 16px pixels */
+    for (let k = 0; k < 14; k++){
+      const b = document.createElement('i'); b.className = 'bit'; fx.append(b);
+      const a = (k / 14) * Math.PI * 2 + Math.random() * .4, r = 260 + Math.random() * 380, s = .6 + Math.random() * 1.2;
+      b.animate([{ opacity:1, transform:'translate(0,0) scale(1.4)' }, { opacity:0, transform:`translate(${Math.cos(a) * r}px,${Math.sin(a) * r * .7}px) rotate(${Math.random() * 180}deg) scale(${s})` }],
+        { duration:900 + Math.random() * 400, delay:T + 20, easing:'cubic-bezier(.15,.7,.3,1)', fill:'both' }).onfinish = () => b.remove();
+    }
+    setTimeout(atPeak, T + 40);                       /* swap while the flash covers the screen */
+    setTimeout(() => { if (tok !== fxToken) return; fx.classList.remove('on'); fx.querySelectorAll('.c3,.cube,.glow,.bloom,.rays').forEach(el => el.getAnimations().forEach(a => a.cancel())); res(); }, T + 1100);
+    setTimeout(res, T + 260);                         /* the page is usable again as soon as the flash fades */
+  });
 }
 
 /* ---------- keyboard + swipe ---------- */
 addEventListener('keydown', e => {
   if (e.metaKey || e.ctrlKey || e.altKey) return;
+  if (introOn){ if (e.key !== 'Tab') endIntro(); return; }
   if (e.key === 'Escape') return closeDemo();
   if (modal.classList.contains('on')) return;
-  if (e.key === 'ArrowRight') select(sel + 1, 1);
-  else if (e.key === 'ArrowLeft') select(sel - 1, -1);
-  else if (e.key === 'ArrowDown') openClient(Math.min(CLIENTS.length - 1, client + 1));
-  else if (e.key === 'ArrowUp') openClient(Math.max(0, client - 1));
+  if (e.key === 'ArrowRight'){ e.preventDefault(); sel === items.length - 1 ? goNext() : select(sel + 1, 1); }
+  else if (e.key === 'ArrowLeft'){ e.preventDefault(); select(sel - 1, -1); }
+  else if (e.key === 'ArrowDown'){ e.preventDefault(); if (client < CLIENTS.length - 1) openClient(client + 1); }
+  else if (e.key === 'ArrowUp'){ e.preventDefault(); if (client > 0) openClient(client - 1); }
   else if (e.key === 'p' || e.key === 'P') openDemo();
+  else if (e.key === 'n' || e.key === 'N') goNext();
 });
+/* swipe on the game screen (not on the strip, which scrolls) */
 let touch = null;
-$('#panel').addEventListener('touchstart', e => { const t = e.touches[0]; touch = { x:t.clientX, y:t.clientY }; }, { passive:true });
+$('#panel').addEventListener('touchstart', e => { if (e.target.closest('.strip')) return; const t = e.touches[0]; touch = { x:t.clientX, y:t.clientY }; }, { passive:true });
 $('#panel').addEventListener('touchend', e => { if (!touch) return; const t = e.changedTouches[0], dx = t.clientX - touch.x, dy = t.clientY - touch.y; touch = null;
-  if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.3) select(sel + (dx < 0 ? 1 : -1), dx < 0 ? 1 : -1); });
+  if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.3){ if (dx < 0) sel === items.length - 1 ? goNext() : select(sel + 1, 1); else select(sel - 1, -1); } });
+$('#nextg').addEventListener('click', goNext);
 
 /* the screen leans a little toward the cursor */
 addEventListener('pointermove', e => { if (RM || e.pointerType === 'touch') return;
@@ -395,7 +563,7 @@ let demoAnim = null;
 $('#cta').addEventListener('mouseenter', () => prepDemo());
 function prepDemo(){ const s = demoOf(game); if (!mv.src.endsWith(s)){ mv.preload = 'auto'; mv.src = s; } }
 function openDemo(){
-  if (!game || modal.classList.contains('on')) return;
+  if (!game || busy || modal.classList.contains('on')) return;
   prepDemo();
   $('#mTitle').textContent = `${GAMES[game].name} · gameplay`;
   const t = curLayer && curLayer.tagName === 'VIDEO' && curLayer.currentTime ? curLayer.currentTime + LOOP_IN : 0;
@@ -426,18 +594,61 @@ modal.addEventListener('click', e => { if (e.target === modal) closeDemo(); });
 let tt = 0;
 function toast(msg){ const t = $('#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(tt); tt = setTimeout(() => t.classList.remove('on'), 1800); }
 
+/* ---------- intro ---------- */
+const intro = $('#intro'), iv = $('#introV'), home = $('#home');
+let seen = false; try { seen = sessionStorage.getItem('16px-studio-intro') === '1'; sessionStorage.setItem('16px-studio-intro', '1'); } catch (e) {}
+let introOn = !RM && !seen && !/[?&]nointro/.test(location.search), introDone = null;
+if (!introOn) document.body.classList.add('no-intro');
+/* where the logo's cube sits in the last frame of the intro (3840 × 2160 source: 1456,904 → 1784,1190) */
+const CUBE = { x:1456/3840, y:904/2160, w:328/3840, h:286/2160 };
+function introCubeRect(){
+  const vw = innerWidth, vh = innerHeight, k = Math.min(vw/16, vh/9), w = 16*k, h = 9*k, ox = (vw - w)/2, oy = (vh - h)/2;
+  return { left:ox + CUBE.x*w, top:oy + CUBE.y*h, width:CUBE.w*w, height:CUBE.h*h };
+}
+let ended = false;
+async function endIntro(){
+  if (ended) return; ended = true; introOn = false;
+  const from = introCubeRect(), r = home.querySelector('svg').getBoundingClientRect();
+  /* the rail is still lifted by its entrance offset (8 design px); land where it settles */
+  const to = { left:r.left, top:r.top + (document.body.classList.contains('pre') ? 8 * S : 0), width:r.width };
+  const f = document.createElement('div'); f.className = 'flycube'; f.innerHTML = home.innerHTML;
+  f.style.width = from.width + 'px'; f.style.height = from.height + 'px';
+  document.body.append(f);
+  const k = to.width / from.width;
+  const a = f.animate([{ transform:`translate(${from.left}px,${from.top}px)`, color:'#f42178' }, { transform:`translate(${(from.left + to.left)/2}px,${Math.min(from.top, to.top) + 40}px) scale(${(1 + k)/2}) rotate(-8deg)`, color:'#f42178', offset:.55 },
+    { transform:`translate(${to.left}px,${to.top}px) scale(${k})`, color:'#808080' }], { duration:1100, easing:'cubic-bezier(.65,0,.25,1)', fill:'forwards' });
+  iv.pause(); intro.classList.add('gone');
+  introDone && introDone();
+  await a.finished.catch(() => {});
+  home.classList.remove('wait'); f.animate([{ opacity:1 }, { opacity:0 }], { duration:250, fill:'forwards' }).onfinish = () => f.remove();
+}
+intro.addEventListener('click', endIntro);
+
 /* ---------- boot ---------- */
+function reveal(){
+  requestAnimationFrame(() => {
+    [...track.children].forEach((b, k) => b.style.transitionDelay = `${.7 + k*.06}s`);
+    document.body.classList.remove('pre');
+    setTimeout(() => { [...track.children].forEach(b => b.style.transitionDelay = ''); document.body.classList.add('ready'); }, 2300);
+  });
+}
 (async () => {
   fit();
+  let introGate = Promise.resolve();
+  if (introOn){
+    home.classList.add('wait');
+    introGate = new Promise(r => { introDone = r; });
+    iv.src = 'a/intro.mp4' + V;
+    iv.addEventListener('timeupdate', () => { if (iv.currentTime > 3.08) endIntro(); });
+    iv.addEventListener('ended', endIntro);
+    iv.addEventListener('error', endIntro);
+    iv.play().catch(endIntro);                       /* autoplay refused (e.g. low power mode): straight to the page */
+    setTimeout(endIntro, 6000);                      /* never keep anyone waiting */
+  }
   await Promise.race([codecCheck, wait(400)]);
-  openClient(1, true);             /* Freaky Labs → Titan Storm, as in the design */
-  placeTrack(true);
-  await Promise.race([whenReady(curLayer, 2500), wait(2500)]);
-  [...track.children].forEach((b, k) => b.style.transitionDelay = `${.7 + k*.06}s`);
-  requestAnimationFrame(() => {
-    document.body.classList.remove('pre');
-    setTimeout(() => { [...track.children].forEach(b => b.style.transitionDelay = ''); document.body.classList.add('ready'); }, 2200);
-  });
+  openClient(1, { first:true });                     /* Freaky Labs → Titan Storm, as in the design */
+  await Promise.all([introGate, Promise.race([whenReady(curLayer, 2500), wait(2500)])]);
+  reveal();
 })();
 </script>
 </body>
