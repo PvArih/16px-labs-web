@@ -40,6 +40,13 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .intro{position:fixed;inset:0;z-index:70;background:#000;transition:opacity 1.1s cubic-bezier(.4,0,.2,1) .1s,visibility 0s linear 1.2s}
 .intro video{width:100%;height:100%;object-fit:contain;display:block;transition:opacity .32s ease}
 .intro.gone video{opacity:0}
+/* the letterbox around the clip follows it when it turns white (3.32 s) */
+.intro.lit{background:#fff}
+/* the full intro ends on white: the page opens through a hole that grows out of the middle of the white */
+@property --hole{syntax:'<length>';inherits:false;initial-value:-160px}
+.intro.white{background:#fff;-webkit-mask-image:radial-gradient(circle at 50% 50%,transparent var(--hole),#000 calc(var(--hole) + 150px));mask-image:radial-gradient(circle at 50% 50%,transparent var(--hole),#000 calc(var(--hole) + 150px));
+  transition:--hole 1.75s cubic-bezier(.7,0,.84,0) .1s,visibility 0s linear 1.9s}
+.intro.white.gone{opacity:1;--hole:170vmax}
 .intro.gone{opacity:0;visibility:hidden}
 .intro .skip{position:absolute;right:24px;bottom:22px;padding:7px 12px;border-radius:9999px;font-size:12px;color:#8a8a8a;box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);opacity:0;animation:fadein .6s ease 1s forwards;transition:color .2s,background .2s}
 .intro .skip:hover{color:#fff;background:rgba(255,255,255,.06)}
@@ -612,7 +619,7 @@ const intro = $('#intro'), iv = $('#introV'), home = $('#home');
 let seen = false; try { seen = sessionStorage.getItem('16px-studio-intro') === '1'; sessionStorage.setItem('16px-studio-intro', '1'); } catch (e) {}
 let introOn = !RM && !seen && !/[?&]nointro/.test(location.search), introDone = null;
 if (!introOn) document.body.classList.add('no-intro');
-/* where the logo's cube sits in the last frame of the intro (3840 × 2160 source: 1456,904 → 1784,1190) */
+/* where the logo's cube sits once the logo has formed (from 2.4 s to the end; 3840 × 2160 source: 1456,904 → 1784,1190) */
 const CUBE = { x:1456/3840, y:904/2160, w:328/3840, h:286/2160 };
 function introCubeRect(){
   const vw = innerWidth, vh = innerHeight, k = Math.min(vw/16, vh/9), w = 16*k, h = 9*k, ox = (vw - w)/2, oy = (vh - h)/2;
@@ -627,6 +634,8 @@ async function endIntro(){
   const f = document.createElement('div'); f.className = 'flycube';
   f.innerHTML = `<div class="fx-x"><div class="fx-y"><div class="fx-s" style="width:${from.width}px;height:${from.height}px"><i class="halo"></i>${home.innerHTML}</div></div></div>`;
   document.body.append(f);
+  /* past 3.4 s the intro is on white with a black logo; before that it is black with the pink one */
+  const white = iv.currentTime > 3.31;
   const k = to.width / from.width, D = 1450;
   const fxX = f.querySelector('.fx-x'), fxY = f.querySelector('.fx-y'), fxS = f.querySelector('.fx-s'), halo = f.querySelector('.halo');
   /* y leads and x follows, so the cube lifts off the logo and glides over to the rail on a curve */
@@ -634,13 +643,16 @@ async function endIntro(){
   const ex = to.left - from.width * (1 - k) / 2, ey = to.top - from.height * (1 - k) / 2;
   fxX.animate([{ transform:`translateX(${from.left}px)` }, { transform:`translateX(${ex}px)` }], { duration:D, easing:'cubic-bezier(.62,0,.22,1)', fill:'forwards' });
   fxY.animate([{ transform:`translateY(${from.top}px)` }, { transform:`translateY(${ey}px)` }], { duration:D, easing:'cubic-bezier(.36,0,.16,1)', fill:'forwards' });
+  const c0 = white ? '#0b0b0b' : '#f42178', c1 = white ? '#0b0b0b' : '#c9c9c9', c1at = white ? .7 : .86;
   const a = fxS.animate([
-    { transform:'scale(1) rotate(0deg)', color:'#f42178' },
-    { transform:`scale(${1 - (1 - k) * .35}) rotate(-7deg)`, color:'#f42178', offset:.3 },
-    { transform:`scale(${k * 1.12}) rotate(2deg)`, color:'#c9c9c9', offset:.86 },
+    { transform:'scale(1) rotate(0deg)', color:c0 },
+    { transform:`scale(${1 - (1 - k) * .35}) rotate(-7deg)`, color:c0, offset:.3 },
+    { transform:`scale(${k * 1.12}) rotate(2deg)`, color:c1, offset:c1at },
     { transform:`scale(${k}) rotate(0deg)`, color:'#808080' }], { duration:D, easing:'cubic-bezier(.55,0,.25,1)', fill:'forwards' });
-  halo.animate([{ opacity:1, transform:'scale(1)' }, { opacity:.75, transform:'scale(1.15)', offset:.35 }, { opacity:0, transform:'scale(.6)' }], { duration:D, easing:'ease-out', fill:'forwards' });
-  intro.classList.add('gone');                       /* the clip dissolves quickly, the black behind it slowly */
+  if (white) halo.remove();
+  else halo.animate([{ opacity:1, transform:'scale(1)' }, { opacity:.75, transform:'scale(1.15)', offset:.35 }, { opacity:0, transform:'scale(.6)' }], { duration:D, easing:'ease-out', fill:'forwards' });
+  if (white) intro.classList.add('white');           /* the white stays (without the logo) and opens from the middle */
+  intro.classList.add('gone');                       /* the clip dissolves quickly, what is behind it more slowly */
   introDone && introDone();
   /* land: the rail icon fades in under the cube and settles with a small bounce */
   setTimeout(() => {
@@ -666,12 +678,14 @@ function reveal(){
   if (introOn){
     home.classList.add('wait');
     introGate = new Promise(r => { introDone = r; });
-    iv.src = 'a/intro.mp4' + V;
-    iv.addEventListener('timeupdate', () => { if (iv.currentTime > 3.08) endIntro(); });
+    iv.src = 'a/intro_full.mp4' + V;
+    iv.addEventListener('timeupdate', () => { if (iv.currentTime > 3.31) intro.classList.add('lit'); if (iv.currentTime > 5.93) endIntro(); });
+    /* frame-exact switch of the letterbox colour where supported */
+    if (iv.requestVideoFrameCallback){ const onFrame = (now, m) => { if (m.mediaTime >= 3.31) intro.classList.add('lit'); else if (!ended) iv.requestVideoFrameCallback(onFrame); }; iv.requestVideoFrameCallback(onFrame); }
     iv.addEventListener('ended', endIntro);
     iv.addEventListener('error', endIntro);
     iv.play().catch(endIntro);                       /* autoplay refused (e.g. low power mode): straight to the page */
-    setTimeout(endIntro, 6000);                      /* never keep anyone waiting */
+    setTimeout(endIntro, 9000);                      /* never keep anyone waiting */
   }
   await Promise.race([codecCheck, wait(400)]);
   /* a link to a game (#district …) opens that game; otherwise Freaky Labs → Titan Storm, as in the design */
