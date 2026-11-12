@@ -70,11 +70,12 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .pillbtn:active{transform:translateY(0) scale(.97)}
 
 /* ---------- hero stage ---------- */
-.hero{position:relative;height:max(100svh, calc(1024px * var(--s)));overflow:hidden;touch-action:pan-y}
-.stage{position:absolute;left:50%;top:0;width:1440px;height:1024px;transform:translateX(-50%) scale(var(--s));transform-origin:top center}
+.hero{position:relative;height:100svh;min-height:calc((1024px + var(--gap,0px)) * var(--s));overflow:hidden;touch-action:pan-y}
+/* --gap: spare height (design px) when the window is taller than the design. The cards stay on the bottom edge, the game screen sits centred above them */
+.stage{position:absolute;left:50%;top:0;width:1440px;height:calc(1024px + var(--gap,0px));transform:translateX(-50%) scale(var(--s));transform-origin:top center}
 /* background: the game screen. The Figma fade to black (linear ellipse around 720, 505 of the frame) is baked into the videos and posters */
-.bgwrap{position:absolute;left:0;top:112px;width:1440px;height:800px}
-#cards{position:absolute;inset:0;transition:transform .7s var(--ease)}
+.bgwrap{position:absolute;left:0;top:calc(112px + var(--gap,0px) / 2);width:1440px;height:800px}
+#cards{position:absolute;left:0;right:0;top:var(--gap,0px);height:1024px;transition:transform .7s var(--ease)}
 .dragging #cards,.dragging .media{transition:none}
 .dots{display:none;position:absolute;left:50%;bottom:18px;transform:translateX(-50%);gap:6px;z-index:5}
 .dots i{width:6px;height:6px;border-radius:50%;background:#3a3a3c;transition:background .3s,width .45s var(--ease),border-radius .45s}
@@ -108,7 +109,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .hover .pb i:nth-child(3){-webkit-backdrop-filter:blur(20px)!important;backdrop-filter:blur(20px)!important}
 
 /* Play demo / See the game: each button arrives on its own (fading the row would switch off the glass blur behind the ghost button) */
-.hud{position:absolute;left:720px;top:470px;transform:translate(-50%,-50%);display:flex;gap:10px;pointer-events:none}
+.hud{position:absolute;left:720px;top:calc(470px + var(--gap,0px) / 2);transform:translate(-50%,-50%);display:flex;gap:10px;pointer-events:none}
 .hud>*{opacity:0;transform:translateY(10px) scale(.96);filter:blur(5px);
   transition:opacity .2s ease-out,transform .4s var(--ease),filter .25s ease-out,background .2s,box-shadow .3s}
 .hover .hud{pointer-events:auto}
@@ -190,7 +191,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 </style>
 </head>
 <body class="pre">
-<div class="intro" id="intro" aria-hidden="true"><img class="lg" id="introLogo" src="a/logo_16px.png" alt=""><div class="px" id="px"></div></div>
+<div class="intro" id="intro" aria-hidden="true"><img class="lg" id="introLogo" src="a/logo_16px.webp" alt=""><div class="px" id="px"></div></div>
 <header class="nav" id="nav">
   <nav class="group left" aria-label="Main">
     <a class="link on" href="#home" aria-current="page" style="--d:.15s">Home</a>
@@ -198,7 +199,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
     <a class="link soon" href="#our-slots" style="--d:.25s">Our Slots</a>
     <a class="link soon" href="#pricing" style="--d:.3s">Pricing</a>
   </nav>
-  <a class="brand" id="brand" href="#home" aria-label="16px Labs, home"><img src="a/logo_16px.png" alt="16px Labs" style="--d:.1s"></a>
+  <a class="brand" id="brand" href="#home" aria-label="16px Labs, home"><img src="a/logo_16px.webp" alt="16px Labs" style="--d:.1s"></a>
   <nav class="group right" aria-label="Contact">
     <a class="link soon" href="#telegram" style="--d:.3s">Telegram</a>
     <a class="link soon" href="#discord" style="--d:.35s">Discord</a>
@@ -220,10 +221,10 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 
 <script>
 const GAMES = [
-  { id:'titan', name:'Titan Storm', cover:'a/cover_titan.png', logo:'a/logo_titan.png', la:95/320, client:'Freakylabs', icon:'a/ic_flask.png', poster:'a/p_titan.jpg', video:'a/titan.mp4' },
-  { id:'district', name:'District 33', cover:'a/cover_district.png', logo:'a/logo_district.png', la:82/244, client:'Creative City', icon:'a/ic_cc.png', poster:'a/p_district.jpg', video:'a/district.mp4' },
-  { id:'mystic', name:'Mystic Wilds', cover:'a/cover_mystic.png', logo:'a/logo_mystic.png', la:100/321, client:'Void Studios', icon:'a/ic_void.png', poster:'a/p_mystic.jpg', video:'a/mystic.mp4', lb:233, ct:249, nofade:true },
-  { id:'wildjohn', name:'Wild John', art:'a/art_wildjohn.png', aw:330, ct:230, client:'Freakylabs', icon:'a/ic_flask.png', poster:'a/p_wildjohn.jpg', video:'a/wildjohn.mp4', nofade:true }
+  { id:'titan', name:'Titan Storm', cover:'a/cover_titan.webp', logo:'a/logo_titan.webp', la:95/320, client:'Freakylabs', icon:'a/ic_flask.webp', poster:'a/p_titan.jpg', video:'a/titan.mp4' },
+  { id:'district', name:'District 33', cover:'a/cover_district.webp', logo:'a/logo_district.webp', la:82/244, client:'Creative City', icon:'a/ic_cc.webp', poster:'a/p_district.jpg', video:'a/district.mp4' },
+  { id:'mystic', name:'Mystic Wilds', cover:'a/cover_mystic.webp', logo:'a/logo_mystic.webp', la:100/321, client:'Void Studios', icon:'a/ic_void.webp', poster:'a/p_mystic.jpg', video:'a/mystic.mp4', lb:233, ct:249, nofade:true },
+  { id:'wildjohn', name:'Wild John', art:'a/art_wildjohn.webp', aw:330, ct:230, client:'Freakylabs', icon:'a/ic_flask.webp', poster:'a/p_wildjohn.jpg', video:'a/wildjohn.mp4', nofade:true }
 ];
 /* the background loops start 0.75 s into the recording (the tail crossfades into the head so the loop has no seam);
    the demo files are the untouched recordings, so demo time = loop time + LOOP_IN */
@@ -249,10 +250,15 @@ const wait = ms => new Promise(r => setTimeout(r, RM ? 0 : ms));
 const raf2 = () => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 
 /* ---------- scale the stage to the window ---------- */
+let GAP = 0;
 function fit(){
   const vw = innerWidth, vh = innerHeight;
-  const s = vw < 760 ? Math.max(.55, vh/1024*.94) : Math.min(1, vw/1440, vh/1024);
+  /* desktop: the whole design scales evenly to the window (no stretching), up to 1.75x on big screens; the artwork is 3x so it stays sharp.
+     Narrow or portrait windows may crop the empty outer margins of the design (it only needs ~1180 px of its 1440 for the three games) */
+  const s = vw < 760 ? Math.max(.55, vh/1024*.94) : Math.min(1.75, vw/1180, vh/1024);
+  GAP = Math.max(0, vh/s - 1024);
   document.documentElement.style.setProperty('--s', s);
+  document.documentElement.style.setProperty('--gap', GAP.toFixed(2) + 'px');
   const stageLeft = (vw - 1440*s)/2;
   document.documentElement.style.setProperty('--side', Math.max(16, stageLeft + 100*s) + 'px');
 }
@@ -308,7 +314,7 @@ const hero = $('#hero'), stage = $('#stage');
 let hovering = false;
 function setHover(on){ if (hovering === on) return; hovering = on; stage.classList.toggle('hover', on); hero.classList.toggle('hot', on); if (on) prepDemo(); }
 function inSlot(e){ const r = stage.getBoundingClientRect(), s = r.width/1440; const x = (e.clientX - r.left)/s, y = (e.clientY - r.top)/s;
-  return y < 760 && ((x-720)/330)**2 + ((y-470)/280)**2 < 1; }
+  const cy = 470 + GAP/2; return y < cy + 290 && ((x-720)/330)**2 + ((y-cy)/280)**2 < 1; }
 hero.addEventListener('pointermove', e => { if (e.pointerType === 'touch' || document.body.classList.contains('pre')) return; setHover(!e.target.closest('.card') && inSlot(e)); });
 hero.addEventListener('pointerleave', () => setHover(false));
 hero.addEventListener('click', e => { if (swallowClick || e.target.closest('.card,.hud')) return; if (inSlot(e)) { if (!hovering) setHover(true); else openDemo(); } });
@@ -324,7 +330,7 @@ function prepDemo(){ const s = demoOf(GAMES[cur]);
   if (!mv.src.endsWith(s)){ mv.preload = 'auto'; mv.src = s; mv.addEventListener('loadedmetadata', park, { once:true }); }
   else if (mv.readyState >= 1) park(); }
 /* where the game screen sits on the page right now */
-function screenRect(){ const r = stage.getBoundingClientRect(), s = r.width/1440; return { left:r.left, top:r.top + 106*s, width:1440*s, height:812*s }; }
+function screenRect(){ const r = stage.getBoundingClientRect(), s = r.width/1440; return { left:r.left, top:r.top + (106 + GAP/2)*s, width:1440*s, height:812*s }; }
 const mapTo = (a, b) => `translate(${a.left - b.left}px, ${a.top - b.top}px) scale(${a.width/b.width}, ${a.height/b.height})`;
 let demoAnim = null;
 function openDemo(){
@@ -472,7 +478,7 @@ function runPixels(){ return new Promise(res => {
 /* the intro logo flies into its place in the header */
 async function flyLogo(){
   const from = $('#introLogo').getBoundingClientRect(), to = brand.getBoundingClientRect();
-  const f = document.createElement('img'); f.src = 'a/logo_16px.png'; f.className = 'fly'; f.alt = '';
+  const f = document.createElement('img'); f.src = 'a/logo_16px.webp'; f.className = 'fly'; f.alt = '';
   f.style.width = from.width + 'px'; f.style.height = from.height + 'px';
   document.body.append(f); $('#introLogo').style.visibility = 'hidden';
   const k = to.width / from.width;
