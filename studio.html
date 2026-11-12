@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>16px Labs · Studio</title>
+<meta name="description" content="16px Labs builds slot games: art, animation and gameplay.">
+<meta name="theme-color" content="#010101">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500&family=Geist+Mono&family=Inter:wght@500&display=swap" rel="stylesheet">
+<link rel="preload" as="image" href="a/lp_titan.jpg">
+<style>
+/* Built from Figma "16px LAB WEB" → Desktop - 5 (1440 × 1024).
+   Everything inside the panel lives in design units on a "scene" that is W × H design px (W ≥ 1390, H ≥ 1000) and scales evenly with the window. */
+:root{
+  --page:#010101;      /* page */
+  --panel:#0d0d0d;     /* the rounded panel */
+  --grey:#808080;      /* inactive icons, kicker text */
+  --text:#c4c3c3;      /* description, meta */
+  --pill:#e5e5e6;      /* Play Demo Slot */
+  --key:#cfd0d1;       /* P key */
+  --ink:#08090a;
+  --s:1; --W:1390px; --H:1000px;
+  --ease:cubic-bezier(.2,.8,.2,1);
+  --swift:cubic-bezier(.65,0,.35,1);
+  --out:cubic-bezier(.4,0,.2,1);
+  color-scheme:dark;
+}
+@property --iris{syntax:'<number>';inherits:false;initial-value:2}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--page);color:#fff;font-family:'Geist',ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif;-webkit-font-smoothing:antialiased;overflow:hidden}
+img{display:block}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+:focus-visible{outline:2px solid rgba(255,255,255,.55);outline-offset:3px;border-radius:6px}
+
+/* ---------- rail: our logo, then one icon per client ---------- */
+.rail{position:fixed;z-index:10;left:calc(13px * var(--s));top:calc(25px * var(--s));width:24px;transform:scale(var(--s));transform-origin:0 0;display:flex;flex-direction:column;align-items:center;gap:12px}
+.rail .ico{position:relative;width:24px;height:24px;display:grid;place-items:center;color:var(--grey);transition:color .25s,transform .35s var(--ease)}
+.rail .ico svg{display:block}
+.rail .ico:hover{color:#d0d0d0;transform:scale(1.08)}
+.rail .ico.on{color:#fff}
+.rail .sep{width:24px;height:1px;border-radius:8px;background:var(--grey)}
+/* name of the client next to its icon */
+.rail .tip{position:absolute;left:34px;top:50%;transform:translate(-4px,-50%);white-space:nowrap;padding:5px 9px;border-radius:8px;background:rgba(28,28,30,.82);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);font-size:12px;line-height:14px;color:#e5e5e6;opacity:0;pointer-events:none;transition:opacity .18s,transform .3s var(--ease)}
+.rail .tip small{color:var(--grey);font-size:12px;margin-left:6px}
+.rail .ico:hover .tip,.rail .ico:focus-visible .tip{opacity:1;transform:translate(0,-50%)}
+
+/* ---------- panel ---------- */
+.panel{position:fixed;left:calc(50px * var(--s));top:calc(12px * var(--s));right:0;bottom:calc(12px * var(--s));background:var(--panel);border-radius:calc(16px * var(--s)) 0 0 calc(16px * var(--s));overflow:hidden}
+.scene{position:absolute;left:0;top:0;width:var(--W);height:var(--H);background:var(--panel);transform:scale(var(--s));transform-origin:0 0}
+
+/* the game screen: 1440 × 812, faded out by the design's ellipse (1240 × 811, linear to transparent) and darkened 10%.
+   The fade is baked into the gameplay videos and their posters; screenshots get it from CSS (.media img.m). */
+.bg{position:absolute;left:calc(-152px + (var(--W) - 1390px) * .4);top:calc(36px + (var(--H) - 1000px) * .5);width:1440px;height:812px;
+  /* only for the entrance: the screen opens from the middle like an iris */
+  -webkit-mask-image:radial-gradient(ellipse calc(43% * var(--iris)) calc(50% * var(--iris)) at 50% 50%,#000 55%,transparent);
+  mask-image:radial-gradient(ellipse calc(43% * var(--iris)) calc(50% * var(--iris)) at 50% 50%,#000 55%,transparent);
+  transition:--iris 1.8s cubic-bezier(.5,0,.15,1),opacity 1s ease,transform 2s var(--ease),filter 1.4s ease}
+.bg .dim{position:absolute;inset:0;background:rgba(0,0,0,.1);pointer-events:none}
+/* the baked fade goes to black; 'lighten' lets it end in the panel colour, like the transparent fade in Figma */
+.bg{mix-blend-mode:lighten}
+.media{position:absolute;inset:0;transform:translate(var(--px,0px),var(--py,0px));transition:transform 1.2s var(--ease)}
+/* one layer per picture or gameplay; changing them: the old one blurs and drifts away, the new one arrives out of the same blur */
+.media .m{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform-origin:50% 45%;
+  transition:filter .85s var(--out),opacity .7s ease,transform 1.15s var(--ease)}
+.media img.m{-webkit-mask-image:radial-gradient(ellipse 43.06% 49.94% at 50% 50%,#000,transparent);mask-image:radial-gradient(ellipse 43.06% 49.94% at 50% 50%,#000,transparent)}
+body.ready .bg{-webkit-mask-image:none;mask-image:none}
+.media .m.soft{filter:blur(22px) brightness(.85)}
+.media .m.from{opacity:0;filter:blur(30px) brightness(.7);transform:translateX(calc(var(--dir,0) * 60px)) scale(1.06);transition:none}
+.media .m.gone{opacity:0;filter:blur(30px) brightness(.5);transform:translateX(calc(var(--dir,0) * -60px)) scale(1.03);transition:filter .6s var(--out),opacity .55s ease .2s,transform 1s var(--ease)}
+.media .m.off{display:none}
+
+/* ---------- game info (right) ---------- */
+.info{position:absolute;left:calc(var(--W) - 507px);top:calc(520px + (var(--H) - 1000px) * .5);width:424px;display:flex;flex-direction:column;align-items:flex-start}
+.info>*{transition:opacity .35s ease,transform .6s var(--ease),filter .4s ease}
+.info.swap>*{opacity:0;transform:translateY(10px);filter:blur(6px);transition-duration:.2s,.3s,.2s}
+.info>:nth-child(2){transition-delay:.04s}.info>:nth-child(3){transition-delay:.08s}.info>:nth-child(4){transition-delay:.12s}
+.info.swap>*{transition-delay:0s}
+.glogo{height:64px;width:auto;filter:drop-shadow(0 6px 14px rgba(0,0,0,.45))}
+.glogo.art{height:120px;margin-top:-56px}
+.desc{margin:24px 0 0;font-size:14px;line-height:20px;color:var(--text);max-width:424px;min-height:60px}
+.cta{position:relative;overflow:hidden;margin-top:20px;display:flex;align-items:center;gap:12px;padding:11px 16px;border-radius:9999px;background:var(--pill);border:1px solid var(--pill);color:var(--ink);font-family:'Inter',sans-serif;font-weight:500;font-size:14px;line-height:16px;transition:background .2s,transform .3s var(--ease),box-shadow .3s}
+.cta>span{display:flex;align-items:center;gap:8px}
+.cta kbd{display:grid;place-items:center;width:16px;height:16px;border-radius:4px;background:var(--key);font:500 12px/16px 'Inter',sans-serif;color:var(--ink)}
+.cta::before{content:"";position:absolute;top:0;bottom:0;left:-60%;width:45%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.95),transparent);transform:skewX(-18deg);opacity:0;pointer-events:none}
+.cta:hover{background:#fff;transform:translateY(-1px);box-shadow:0 10px 28px -8px rgba(255,255,255,.3)}
+.cta:hover::before{animation:glint .7s var(--out)}
+.cta:active{transform:scale(.97)}
+@keyframes glint{0%{left:-60%;opacity:1}100%{left:120%;opacity:1}}
+.meta{margin-top:20px;display:flex;align-items:center;gap:12px;font-size:14px;line-height:16px;font-weight:500;color:var(--text)}
+.meta .who{display:flex;align-items:center;gap:8px}
+.meta .who svg{width:16px;height:16px}
+.meta .bar{width:1px;height:16px;border-radius:8px;background:rgba(255,255,255,.25)}
+.meta a{display:grid;place-items:center;width:16px;height:16px;opacity:.9;transition:opacity .2s,transform .3s var(--ease)}
+.meta a:hover{opacity:1;transform:translateY(-1px)}
+
+/* ---------- film strip: gameplay first, then screens ---------- */
+.strip{position:absolute;left:0;right:0;bottom:24px;height:200px;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 24px,#000 calc(100% - 140px),transparent);mask-image:linear-gradient(90deg,transparent 0,#000 24px,#000 calc(100% - 140px),transparent)}
+.track{position:absolute;left:0;bottom:0;display:flex;align-items:flex-end;gap:56px;transform:translateX(var(--tx,0px));transition:transform .8s var(--ease);will-change:transform}
+.item{flex:none;display:flex;flex-direction:column;align-items:flex-start;text-align:left;opacity:.5;transition:opacity .35s,margin .6s var(--ease)}
+.item .th{position:relative;width:200px;height:110px;border-radius:12px;overflow:hidden;background:#1a1a1b;transition:width .6s var(--ease),height .6s var(--ease),transform .35s var(--ease),box-shadow .4s}
+.item .th img{width:100%;height:100%;object-fit:cover;transition:transform .8s var(--ease)}
+.item .k{margin-top:12px;font-family:'Geist Mono',ui-monospace,monospace;font-size:12px;line-height:14px;color:var(--grey);letter-spacing:.01em}
+.item .t{font-size:14px;line-height:16px;font-weight:500;color:#fff;margin-top:2px}
+.item:hover{opacity:.8}
+.item:hover .th{transform:translateY(-3px)}
+.item:hover .th img{transform:scale(1.04)}
+.item.on{opacity:1;margin-bottom:12px}
+.item.on .th{width:240px;height:130px;box-shadow:0 18px 40px -16px rgba(0,0,0,.8)}
+.item.on:hover .th{transform:none}
+/* gameplay: a play badge and the playback progress */
+.item .badge{position:absolute;left:10px;bottom:10px;display:flex;align-items:center;gap:6px;padding:4px 8px 4px 6px;border-radius:9999px;background:rgba(0,0,0,.55);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);font:500 11px/12px 'Geist',sans-serif;color:#fff}
+.item .badge svg{width:10px;height:10px}
+.item .prog{position:absolute;left:0;right:0;bottom:0;height:2px;background:rgba(255,255,255,.18);opacity:0;transition:opacity .3s}
+.item .prog i{display:block;height:100%;width:100%;background:#fff;transform-origin:0 50%;transform:scaleX(var(--p,0))}
+.item.on .prog{opacity:1}
+.item.on .badge{opacity:0}
+
+/* ---------- demo player: grows out of the game screen and shrinks back into it ---------- */
+.modal{position:fixed;inset:0;z-index:40;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;visibility:hidden;pointer-events:none;transition:visibility 0s linear .75s}
+.modal.on{visibility:visible;pointer-events:auto;transition:none}
+.modal::before{content:"";position:absolute;inset:0;background:rgba(1,1,1,.88);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);opacity:0;transition:opacity .5s ease}
+.modal.on::before{opacity:1}
+.modal video{position:relative;width:min(1200px,94vw,calc(78vh * 16 / 9));aspect-ratio:16/9;height:auto;border-radius:12px;background:#000;box-shadow:0 0 0 1px rgba(255,255,255,.08),0 40px 80px -20px #000;transform-origin:0 0}
+.modal .bar{position:relative;width:min(1200px,94vw,calc(78vh * 16 / 9));display:flex;justify-content:space-between;align-items:center;font-size:13px;color:#8a8a8a;opacity:0;transform:translateY(8px);transition:opacity .25s ease,transform .4s var(--ease)}
+.modal.on .bar{opacity:1;transform:none;transition-delay:.4s}
+.modal .close{padding:6px 12px;border-radius:9999px;color:#e5e5e6;box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);transition:background .2s}
+.modal .close:hover{background:rgba(255,255,255,.08)}
+.toast{position:fixed;left:50%;top:28px;transform:translate(-50%,-12px) scale(.96);opacity:0;filter:blur(6px);z-index:30;padding:10px 16px;border-radius:9999px;background:rgba(30,30,32,.9);color:#d9d9db;font-size:13px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);transition:opacity .3s,transform .45s var(--ease),filter .3s;pointer-events:none}
+.toast.on{opacity:1;transform:translate(-50%,0);filter:blur(0)}
+
+/* ---------- entrance ---------- */
+.pre .bg{--iris:0;opacity:0;transform:scale(1.06);filter:blur(12px)}
+.pre .panel{opacity:0;transform:translateX(14px)}
+.panel{transition:opacity .9s ease,transform 1.1s var(--ease)}
+.pre .rail>*{opacity:0;transform:translateY(-8px)}
+.rail>*{transition:opacity .6s ease var(--d,0s),transform .7s var(--ease) var(--d,0s),color .25s}
+.pre .info>*{opacity:0;transform:translateY(14px);filter:blur(8px)}
+.pre .item{opacity:0;transform:translateY(30px)}
+.item{transition:opacity .35s,margin .6s var(--ease),transform .9s var(--ease)}
+body:not(.pre) .info>*{transition-delay:calc(var(--i,0) * .07s + .9s)}
+body.ready .info>*{transition-delay:0s}
+body.ready .info>:nth-child(2){transition-delay:.04s}body.ready .info>:nth-child(3){transition-delay:.08s}body.ready .info>:nth-child(4){transition-delay:.12s}
+body.ready .info.swap>*{transition-delay:0s}
+
+/* ---------- phones: rail on top, screen, info, strip ---------- */
+@media (max-width:760px){
+  html,body{overflow:hidden}
+  .rail{flex-direction:row;left:16px;top:14px;transform:none;width:auto;gap:16px}
+  .rail .sep{width:1px;height:20px}
+  .rail .tip{display:none}
+  .panel{left:0;top:52px;bottom:0;border-radius:16px 16px 0 0}
+  .scene{transform:none;width:100%;height:100%}
+  .bg{left:50%;top:0;width:190vw;height:calc(190vw * 812 / 1440);transform:translateX(-50%);margin-top:-4vw}
+  .pre .bg{transform:translateX(-50%) scale(1.06)}
+  .bg .dim{background:linear-gradient(180deg,rgba(0,0,0,.1) 30%,rgba(13,13,13,.9) 72%)}
+  .info{left:20px;right:20px;top:auto;bottom:206px;width:auto}
+  .glogo{height:52px}
+  .glogo.art{height:96px;margin-top:0}
+  .desc{margin-top:16px;font-size:13px;line-height:19px;min-height:0}
+  .meta{margin-top:16px}
+  .strip{bottom:20px;height:170px;-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 16px,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(90deg,transparent 0,#000 16px,#000 calc(100% - 40px),transparent)}
+  .track{gap:16px}
+  .item .th{width:150px;height:84px;border-radius:10px}
+  .item.on .th{width:176px;height:99px}
+}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition-duration:.01s!important;transition-delay:0s!important}}
+</style>
+</head>
+<body class="pre">
+<aside class="rail" id="rail" aria-label="Clients">
+  <a class="ico" id="home" href="./" aria-label="16px Labs" style="--d:.1s"><svg width="24" height="21" viewBox="0 0 24 21" fill="none" aria-hidden="true"><path d="M10.3305 4.30803L9.32068 6.03086L7.30037 6.03098L8.31064 4.30789L10.3305 4.30803Z" fill="currentColor"/><path fill-rule="evenodd" clip-rule="evenodd" d="M16.9256 0C17.5336 0 18.0963 .323 18.4047 .8491L23.4551 9.46425C23.7714 10.0037 23.7714 10.6728 23.4551 11.2122L18.4044 19.8278C18.096 20.3539 17.5333 20.6769 16.9252 20.6769L6.76672 20.6767C6.15868 20.6767 5.59603 20.3537 5.28762 19.8276L.237161 11.2125C-.0790482 10.6731-.0790539 10.0039.237145 9.46453L5.28749.849164C5.5959.323048 6.15858 0 6.76664 0L16.9256 0ZM14.8764 8.61505L15.8867 10.3385L14.8764 12.0616L17.9066 17.2304L18.9168 15.5074L17.9068 13.7844L19.9269 10.3385L20.9369 12.0614L21.9472 10.3384L19.9268 6.89198L16.8967 12.0614L15.8867 10.3385L18.9168 5.16901L17.9067 3.44605L14.8764 8.61505ZM9.82598 18.9532L11.8466 18.9535L7.8061 12.0612L5.78579 12.0614L9.82598 18.9532ZM2.7554 8.61528L10.8362 8.61505L14.8768 1.72295L6.79575 1.72274L2.7554 8.61528Z" fill="currentColor"/></svg></a>
+  <i class="sep" style="--d:.16s"></i>
+</aside>
+
+<main class="panel" id="panel">
+  <div class="scene" id="scene">
+    <div class="bg" id="bg"><div class="media" id="media" aria-hidden="true"></div><div class="dim"></div></div>
+    <section class="info" id="info" aria-live="polite">
+      <img class="glogo" id="glogo" alt="" style="--i:0">
+      <p class="desc" id="desc" style="--i:1"></p>
+      <button class="cta" id="cta" style="--i:2"><span><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6.16262 1.57839C4.94279 .789081 3.33333 1.66467 3.33333 3.11759V12.8825C3.33333 14.3355 4.94279 15.2111 6.16262 14.4217L13.7083 9.53927C14.8247 8.81687 14.8248 7.18333 13.7083 6.46086L6.16262 1.57839Z" fill="currentColor"/></svg>Play Demo Slot</span><kbd>P</kbd></button>
+      <div class="meta" id="meta" style="--i:3"></div>
+    </section>
+    <div class="strip" id="strip"><div class="track" id="track" role="tablist" aria-label="Gameplay and screens"></div></div>
+  </div>
+</main>
+
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-label="Game demo"><video id="mVideo" controls playsinline preload="none"></video><div class="bar"><span id="mTitle">Demo</span><button class="close" id="mClose">Close</button></div></div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+/* ---------- content ---------- */
+const ICON = {
+  cc:'<svg width="23" height="23" viewBox="0 0 23 23" fill="none" aria-hidden="true"><path d="M15.6852 6.17747V18.3341C14.4466 19.1221 12.9928 19.6018 11.4316 19.6651V3.72168L15.6852 6.17747Z" fill="currentColor"/><path d="M10.7227 4.53756L10.0138 4.94949L7.17806 6.58671V18.7393C6.93482 18.6152 6.69832 18.4798 6.46914 18.3341V9.57945L2.51805 11.8753C2.49383 11.6124 2.48145 11.346 2.48145 11.0768L6.46914 8.75961V6.17747L10.7227 3.72168V4.53756Z" fill="currentColor"/><path d="M19.6728 11.0771C19.6728 13.817 18.3908 16.2574 16.394 17.8314V9.17188L19.6728 11.0771Z" fill="currentColor"/><path fill-rule="evenodd" clip-rule="evenodd" d="M11.0769 0C17.1946 0 22.1538 4.95931 22.1538 11.0769C22.1538 17.1946 17.1946 22.1538 11.0769 22.1538C4.95931 22.1538 0 17.1946 0 11.0769C0 4.95931 4.95931 0 11.0769 0ZM11.0769 1.77231C5.93812 1.77231 1.77231 5.93812 1.77231 11.0769C1.77231 16.2157 5.93812 20.3815 11.0769 20.3815C16.2157 20.3815 20.3815 16.2157 20.3815 11.0769C20.3815 5.93812 16.2157 1.77231 11.0769 1.77231Z" fill="currentColor"/></svg>',
+  flask:'<svg width="23" height="23" viewBox="0 0 23 23" fill="none" aria-hidden="true"><path d="M11.0771 9.97079C11.0771 10.8273 10.3828 11.5216 9.52635 11.5216C8.66989 11.5216 7.97558 10.8273 7.97558 9.97079C7.97558 9.11432 8.66989 8.42002 9.52635 8.42002C10.3828 8.42002 11.0771 9.11432 11.0771 9.97079Z" fill="currentColor"/><path d="M14.8837 .501927C15.0968 .173452 15.5358 .0798931 15.8642 .292958C16.1927 .506024 16.2863 .945028 16.0732 1.2735L15.1882 2.63789C15.1463 2.7025 15.124 2.77787 15.124 2.85489V7.16063C15.124 7.2354 15.145 7.30867 15.1847 7.37206L21.0969 16.8252C22.4996 19.068 20.8873 21.9782 18.2419 21.9782H3.91232C1.267 21.9782-.345374 19.068 1.05733 16.8252L6.96957 7.37206C7.00922 7.30867 7.03026 7.2354 7.03026 7.16063V2.85489C7.03026 2.77787 7.00796 2.7025 6.96605 2.63789L6.08104 1.2735C5.86798 .94503 5.96154 .506025 6.29001 .292958C6.61849 .0798931 7.05749 .173452 7.27056 .501927L8.15556 1.86631C8.3465 2.16067 8.4481 2.50403 8.44811 2.85489V7.16063C8.4481 7.50128 8.35231 7.83507 8.17168 8.12389L2.25942 17.577C1.44733 18.8755 2.38082 20.5603 3.91232 20.5603H18.2419C19.7734 20.5603 20.7069 18.8755 19.8948 17.577L13.9826 8.12389C13.8019 7.83507 13.7061 7.50128 13.7061 7.16063V2.85489C13.7061 2.50403 13.8077 2.16067 13.9987 1.86631L14.8837 .501927Z" fill="currentColor"/><path fill-rule="evenodd" clip-rule="evenodd" d="M11.0771 12.3413C12.2647 11.1537 14.0809 10.9781 15.4545 11.8143L19.2938 17.9529C19.8105 18.7792 19.2165 19.8514 18.2419 19.8514H3.9123C2.93772 19.8514 2.34369 18.7792 2.86045 17.9529L5.90596 13.0835C6.08509 12.797 6.47635 12.7401 6.7688 12.9092C8.13367 13.6983 9.90939 13.509 11.0771 12.3413ZM10.2352 17.3535C9.76621 18.1083 8.92958 18.6108 7.97559 18.6108C6.50736 18.6108 5.31713 17.4206 5.31713 15.9523C5.31713 15.8059 5.32897 15.6622 5.35174 15.5222L10.2352 17.3535ZM14.1787 18.6108C13.2247 18.6108 12.388 18.1083 11.919 17.3535L16.8025 15.5222C16.8253 15.6622 16.8371 15.8059 16.8371 15.9523C16.8371 17.4206 15.6469 18.6108 14.1787 18.6108Z" fill="currentColor"/><path d="M11.919 5.4071C12.5063 5.4071 12.9824 5.88319 12.9824 6.47048C12.9824 7.05777 12.5063 7.53387 11.919 7.53387C11.3317 7.53387 10.8556 7.05777 10.8556 6.47048C10.8556 5.88319 11.3317 5.4071 11.919 5.4071Z" fill="currentColor"/><path d="M9.96943 .178792C10.4099 .178792 10.767 .535863 10.767 .976331C10.767 1.4168 10.4099 1.77387 9.96943 1.77387C9.52896 1.77387 9.17189 1.4168 9.17189 .976331C9.17189 .535864 9.52896 .178794 9.96943 .178792Z" fill="currentColor"/></svg>',
+  x:'<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M12.14 1.4751H14.3486L9.5246 7.0029L15.2 14.5251H10.7567L7.2764 9.9621L3.2939 14.5251H1.0844L6.2441 8.6121L.8 1.4751H5.3567L8.5022 5.6448L12.14 1.4751ZM11.366 13.2003H12.59L4.6907 2.7306H3.3785L11.366 13.2003Z" fill="#C4C3C3"/></svg>',
+  globe:'<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M14.1667 8C14.1667 11.4059 11.4057 14.1668 8 14.1668C4.59425 14.1668 1.83333 11.4059 1.83333 8C1.83333 4.59441 4.59425 1.8335 8 1.8335C11.4057 1.8335 14.1667 4.59441 14.1667 8Z" stroke="#C4C3C3" stroke-linecap="square"/><path d="M8 14C6.52724 14 5.33333 11.3137 5.33333 8C5.33333 4.68629 6.52724 2 8 2C9.47273 2 10.6667 4.68629 10.6667 8C10.6667 11.3137 9.47273 14 8 14Z" stroke="#C4C3C3" stroke-linecap="square"/><path d="M14 8H2" stroke="#C4C3C3" stroke-linecap="square"/></svg>',
+  play:'<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6.16 1.58C4.94.79 3.33 1.66 3.33 3.12v9.76c0 1.45 1.61 2.33 2.83 1.54l7.55-4.88c1.12-.72 1.12-2.36 0-3.08L6.16 1.58Z" fill="currentColor"/></svg>'
+};
+/* clients in the rail (top to bottom) and the games we made for each.
+   Descriptions other than Titan Storm, the X / website links and the screen captions are placeholders. */
+const CLIENTS = [
+  { id:'cc', name:'Creative City', icon:'cc', x:'#', web:'#', games:['district'] },
+  { id:'freaky', name:'Freaky Labs', icon:'flask', x:'#', web:'#', games:['titan', 'wildjohn'] },
+  { id:'void', name:'Void Studios', icon:'cc', x:'#', web:'#', games:['mystic'] }
+];
+const GAMES = {
+  titan:{ name:'Titan Storm', logo:'a/logo_titan.webp', desc:'Step into a world of ancient temples, towering titans, and gathering storms. In Titan Storm, every spin brings a flash of lightning and the chance to uncover what lies beyond the ruins.' },
+  wildjohn:{ name:'Wild John', logo:'a/art_wildjohn.webp', art:true, desc:'Grab your hat and follow Wild John deep into the jungle. Coins drop onto the reels, free spins open the trail, and every spin gets him one step closer to the lost treasure.' },
+  district:{ name:'District 33', logo:'a/logo_district.webp', desc:'Welcome to District 33, where the streets never sleep and every corner hides a hustle. Spin through the back alleys, trigger Super Freak Spins and watch the whole block pay out.' },
+  mystic:{ name:'Mystic Wilds', logo:'a/logo_mystic.webp', desc:'Deep in an enchanted temple, spirit flames guard the reels. Wild vines climb the grid, multipliers stack up, and every spin pulls you further into the wilds.' }
+};
+const SHOTS = 4;
+/* film strip items for one client: per game, the gameplay first, then its screens */
+function itemsOf(c){ return c.games.flatMap(g => [{ g, kind:'video', k:'GAMEPLAY 01', full:`a/loop_${g}.mp4`, poster:`a/lp_${g}.jpg`, thumb:`a/shots/gp_${g}_t.webp` },
+  ...Array.from({ length:SHOTS }, (_, i) => ({ g, kind:'image', k:`SCREEN ${String(i + 1).padStart(2, '0')}`, full:`a/shots/${g}_${i + 1}.webp`, thumb:`a/shots/${g}_${i + 1}_t.webp` }))]); }
+/* the loops start 0.75 s into the recording (their tail crossfades into the head); the demo files are the untouched recordings */
+const LOOP_IN = .75;
+const V = '?v=4';
+
+const $ = s => document.querySelector(s);
+const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const wait = ms => new Promise(r => setTimeout(r, RM ? 0 : ms));
+const raf2 = () => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+const isPhone = () => innerWidth <= 760;
+
+/* ---------- scale: the scene keeps the design's proportions and grows with the window ---------- */
+let S = 1;
+function fit(){
+  const vw = innerWidth, vh = innerHeight, root = document.documentElement.style;
+  if (isPhone()){ S = 1; root.setProperty('--s', 1); root.setProperty('--W', '100%'); root.setProperty('--H', '100%'); placeTrack(true); return; }
+  S = Math.min(1.75, vh/1024, vw/1230);
+  root.setProperty('--s', S);
+  root.setProperty('--W', ((vw - 50*S) / S).toFixed(2) + 'px');
+  root.setProperty('--H', ((vh - 24*S) / S).toFixed(2) + 'px');
+  placeTrack(true);
+}
+addEventListener('resize', fit);
+
+/* ---------- AV1 where it decodes smoothly, H.264 otherwise ---------- */
+let AV1 = false;
+const codecCheck = (async () => { try {
+  if (!navigator.mediaCapabilities) return;
+  const r = await navigator.mediaCapabilities.decodingInfo({ type:'file', video:{ contentType:'video/mp4; codecs="av01.0.09M.10"', width:1920, height:1082, bitrate:2600000, framerate:60 } });
+  AV1 = r.supported && r.smooth && (r.powerEfficient || !matchMedia('(pointer: coarse)').matches);
+} catch (e) {} })();
+
+/* ---------- background layers ---------- */
+const media = $('#media'), LAYER = {};
+let curLayer = null, zTop = 1;
+function layerFor(it){
+  const key = it.full; if (LAYER[key]) return LAYER[key];
+  let el;
+  if (it.kind === 'video'){
+    el = document.createElement('video');
+    el.muted = true; el.loop = true; el.playsInline = true; el.setAttribute('playsinline', ''); el.preload = 'none'; el.disableRemotePlayback = true;
+    el.poster = it.poster + V; el.dataset.src = it.full;
+    el.addEventListener('error', () => { if (el.src.includes('.av1.')){ el.src = it.full + V; if (el === curLayer) el.play().catch(() => {}); } });
+    el.addEventListener('timeupdate', () => { if (el === curLayer && el.duration) progress(el.currentTime / el.duration); });
+  } else {
+    el = new Image(); el.decoding = 'async'; el.alt = ''; el.dataset.src = it.full;
+  }
+  el.className = 'm off'; media.append(el); return LAYER[key] = el;
+}
+function arm(el, how){
+  if (el.tagName === 'VIDEO'){ if (!el.src){ el.preload = how; el.src = (AV1 ? el.dataset.src.replace(/\.mp4$/, '.av1.mp4') : el.dataset.src) + V; } else if (how === 'auto') el.preload = 'auto'; }
+  else if (!el.src) el.src = el.dataset.src + V;
+}
+function play(el){ if (!el) return; arm(el, 'auto'); if (el.tagName === 'VIDEO'){ const p = el.play(); if (p) p.catch(() => {}); } }
+const ready = el => el.tagName === 'VIDEO' ? el.readyState >= 3 : (el.complete && el.naturalWidth > 0);
+function whenReady(el, ms){ return ready(el) ? Promise.resolve() : new Promise(r => {
+  const evs = el.tagName === 'VIDEO' ? ['canplay', 'playing'] : ['load', 'error'];
+  const done = () => { clearTimeout(t); evs.forEach(e => el.removeEventListener(e, done)); r(); };
+  const t = setTimeout(done, ms); evs.forEach(e => el.addEventListener(e, done)); }); }
+async function swapTo(it, dir = 0){
+  const next = layerFor(it), prev = curLayer;
+  if (next === prev) return;
+  media.style.setProperty('--dir', dir);
+  next.classList.remove('off', 'gone', 'soft'); next.classList.add('from'); next.style.zIndex = ++zTop;
+  play(next); void next.offsetWidth;
+  if (prev) prev.classList.add('gone');
+  curLayer = next;
+  await raf2();
+  next.classList.remove('from');
+  if (!ready(next)){ next.classList.add('soft'); await whenReady(next, 2500); await wait(100); next.classList.remove('soft'); }
+  if (prev){ await wait(1000); if (prev !== curLayer){ if (prev.tagName === 'VIDEO') prev.pause(); prev.classList.add('off'); prev.classList.remove('gone'); } }
+}
+document.addEventListener('visibilitychange', () => { if (!curLayer || curLayer.tagName !== 'VIDEO' || modal.classList.contains('on')) return; document.hidden ? curLayer.pause() : play(curLayer); });
+
+/* ---------- rail ---------- */
+const rail = $('#rail');
+CLIENTS.forEach((c, i) => {
+  const b = document.createElement('button');
+  b.className = 'ico'; b.dataset.client = c.id; b.style.setProperty('--d', (.2 + i*.06) + 's');
+  b.setAttribute('aria-label', c.name);
+  b.innerHTML = ICON[c.icon] + `<span class="tip">${c.name}<small>${c.games.length} ${c.games.length > 1 ? 'games' : 'game'}</small></span>`;
+  b.addEventListener('click', () => openClient(i));
+  rail.append(b);
+});
+$('#home').addEventListener('click', e => { e.preventDefault(); openClient(1); });
+
+/* ---------- film strip ---------- */
+const track = $('#track'), info = $('#info');
+let client = -1, items = [], sel = -1, game = null;
+function buildStrip(){
+  track.innerHTML = items.map((it, i) => `<button class="item" role="tab" data-i="${i}" aria-label="${GAMES[it.g].name}, ${it.k.toLowerCase()}">
+    <span class="th"><img src="${it.thumb}${V}" alt="" loading="lazy" decoding="async">${it.kind === 'video' ? `<span class="badge">${ICON.play}Gameplay</span><span class="prog"><i></i></span>` : ''}</span>
+    <span class="k">${it.k}</span><span class="t">${GAMES[it.g].name}</span></button>`).join('');
+}
+track.addEventListener('click', e => { const b = e.target.closest('.item'); if (b) select(+b.dataset.i); });
+/* the chosen item sits in the second place of the strip (design x 280), the one before it peeks in from the left */
+function placeTrack(instant){
+  if (sel < 0) return;
+  /* every item before the chosen one is small (200 wide + 56 gap; 150 + 16 on phones), so its place is known without measuring */
+  const x = isPhone() ? 20 - sel * 166 : (sel === 0 ? 24 : 280 - sel * 256);
+  if (instant) track.style.transition = 'none';
+  track.style.setProperty('--tx', x + 'px');
+  if (instant){ void track.offsetWidth; track.style.transition = ''; }
+}
+function progress(p){ const it = track.children[sel]; if (it) it.style.setProperty('--p', p.toFixed(4)); }
+
+async function select(i, dir){
+  if (i < 0 || i >= items.length || i === sel) return;
+  const d = dir ?? Math.sign(i - sel);
+  [...track.children].forEach((b, k) => { b.classList.toggle('on', k === i); b.setAttribute('aria-selected', k === i); });
+  sel = i;
+  /* the width change of the chosen item settles first, then the strip slides to it */
+  placeTrack(false);
+  const it = items[i];
+  if (it.g !== game) showGame(it.g);
+  swapTo(it, d);
+  warm();
+}
+function warm(){ [sel + 1, sel - 1].forEach(k => { const it = items[k]; if (it) arm(layerFor(it), 'metadata'); }); }
+
+/* ---------- game info ---------- */
+let infoToken = 0;
+async function showGame(g){
+  game = g; const G = GAMES[g], c = CLIENTS[client], t = ++infoToken;
+  const fill = () => {
+    const logo = $('#glogo'); logo.src = G.logo; logo.alt = G.name; logo.classList.toggle('art', !!G.art);
+    $('#desc').textContent = G.desc;
+    $('#meta').innerHTML = `<span class="who">${ICON[c.icon].replace('width="23" height="23"', 'width="16" height="16"')}${c.name}</span><i class="bar"></i><a href="${c.x}" aria-label="${c.name} on X" class="soon">${ICON.x}</a><a href="${c.web}" aria-label="${c.name} website" class="soon">${ICON.globe}</a>`;
+    $('#meta').querySelectorAll('.soon').forEach(a => a.addEventListener('click', e => { if (a.getAttribute('href') === '#'){ e.preventDefault(); toast('Link coming soon'); } }));
+  };
+  if (!document.body.classList.contains('ready')){ fill(); return; }
+  info.classList.add('swap'); await wait(230); if (t !== infoToken) return;
+  fill(); await raf2(); info.classList.remove('swap');
+}
+
+function openClient(i, first){
+  if (i === client) return;
+  const dir = client < 0 ? 0 : Math.sign(i - client);
+  client = i; const c = CLIENTS[i];
+  rail.querySelectorAll('[data-client]').forEach(b => b.classList.toggle('on', b.dataset.client === c.id));
+  items = itemsOf(c); sel = -1; game = null;
+  const swapStrip = () => { buildStrip(); select(0, dir); placeTrack(true); };
+  if (first || RM){ swapStrip(); return; }
+  track.animate([{ opacity:1, filter:'blur(0px)', translate:'0 0' }, { opacity:0, filter:'blur(8px)', translate:`${-dir * 40}px 0` }], { duration:220, easing:'ease-in', fill:'forwards' })
+    .finished.then(a => { swapStrip(); track.getAnimations().forEach(x => x.cancel());
+      track.animate([{ opacity:0, filter:'blur(8px)', translate:`${dir * 60}px 0` }, { opacity:1, filter:'blur(0px)', translate:'0 0' }], { duration:650, easing:'cubic-bezier(.2,.8,.2,1)' }); });
+}
+
+/* ---------- keyboard + swipe ---------- */
+addEventListener('keydown', e => {
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.key === 'Escape') return closeDemo();
+  if (modal.classList.contains('on')) return;
+  if (e.key === 'ArrowRight') select(sel + 1, 1);
+  else if (e.key === 'ArrowLeft') select(sel - 1, -1);
+  else if (e.key === 'ArrowDown') openClient(Math.min(CLIENTS.length - 1, client + 1));
+  else if (e.key === 'ArrowUp') openClient(Math.max(0, client - 1));
+  else if (e.key === 'p' || e.key === 'P') openDemo();
+});
+let touch = null;
+$('#panel').addEventListener('touchstart', e => { const t = e.touches[0]; touch = { x:t.clientX, y:t.clientY }; }, { passive:true });
+$('#panel').addEventListener('touchend', e => { if (!touch) return; const t = e.changedTouches[0], dx = t.clientX - touch.x, dy = t.clientY - touch.y; touch = null;
+  if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.3) select(sel + (dx < 0 ? 1 : -1), dx < 0 ? 1 : -1); });
+
+/* the screen leans a little toward the cursor */
+addEventListener('pointermove', e => { if (RM || e.pointerType === 'touch') return;
+  const x = e.clientX/innerWidth - .5, y = e.clientY/innerHeight - .5;
+  media.style.setProperty('--px', (-x*14).toFixed(1) + 'px'); media.style.setProperty('--py', (-y*10).toFixed(1) + 'px'); });
+
+/* ---------- demo player ---------- */
+const modal = $('#modal'), mv = $('#mVideo');
+const demoOf = g => `a/demo_${g}.mp4${V}`;
+function screenRect(){ const r = $('#bg').getBoundingClientRect(); return { left:r.left, top:r.top, width:r.width, height:r.height }; }
+const mapTo = (a, b) => `translate(${a.left - b.left}px, ${a.top - b.top}px) scale(${a.width/b.width}, ${a.height/b.height})`;
+let demoAnim = null;
+$('#cta').addEventListener('mouseenter', () => prepDemo());
+function prepDemo(){ const s = demoOf(game); if (!mv.src.endsWith(s)){ mv.preload = 'auto'; mv.src = s; } }
+function openDemo(){
+  if (!game || modal.classList.contains('on')) return;
+  prepDemo();
+  $('#mTitle').textContent = `${GAMES[game].name} · gameplay`;
+  const t = curLayer && curLayer.tagName === 'VIDEO' && curLayer.currentTime ? curLayer.currentTime + LOOP_IN : 0;
+  const seek = () => { try { mv.currentTime = Math.min(t, (mv.duration || 1e9) - .5); } catch (e) {} };
+  mv.readyState >= 1 ? seek() : mv.addEventListener('loadedmetadata', seek, { once:true });
+  if (demoAnim){ demoAnim.cancel(); demoAnim = null; }
+  modal.classList.add('on');
+  const b = mv.getBoundingClientRect(), a = screenRect();
+  if (!RM) demoAnim = mv.animate([{ transform:mapTo(a, b), opacity:0, borderRadius:'0px' }, { transform:mapTo(a, b), opacity:.6, borderRadius:'4px', offset:.15 }, { transform:'none', opacity:1, borderRadius:'12px' }], { duration:800, easing:'cubic-bezier(.22,.9,.24,1)' });
+  mv.play().catch(() => {});
+  setTimeout(() => { if (modal.classList.contains('on') && curLayer && curLayer.tagName === 'VIDEO') curLayer.pause(); }, 820);
+  $('#mClose').focus({ preventScroll:true });
+}
+function closeDemo(){
+  if (!modal.classList.contains('on')) return;
+  if (curLayer && curLayer.tagName === 'VIDEO') play(curLayer);
+  if (demoAnim){ demoAnim.cancel(); demoAnim = null; }
+  const b = mv.getBoundingClientRect(), a = screenRect();
+  modal.classList.remove('on');
+  if (RM){ mv.pause(); return; }
+  demoAnim = mv.animate([{ transform:'none', opacity:1, borderRadius:'12px' }, { transform:mapTo(a, b), opacity:0, borderRadius:'0px' }], { duration:650, easing:'cubic-bezier(.5,0,.2,1)', fill:'forwards' });
+  demoAnim.onfinish = () => mv.pause();
+}
+$('#cta').addEventListener('click', openDemo);
+$('#mClose').addEventListener('click', closeDemo);
+modal.addEventListener('click', e => { if (e.target === modal) closeDemo(); });
+
+let tt = 0;
+function toast(msg){ const t = $('#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(tt); tt = setTimeout(() => t.classList.remove('on'), 1800); }
+
+/* ---------- boot ---------- */
+(async () => {
+  fit();
+  await Promise.race([codecCheck, wait(400)]);
+  openClient(1, true);             /* Freaky Labs → Titan Storm, as in the design */
+  placeTrack(true);
+  await Promise.race([whenReady(curLayer, 2500), wait(2500)]);
+  [...track.children].forEach((b, k) => b.style.transitionDelay = `${.7 + k*.06}s`);
+  requestAnimationFrame(() => {
+    document.body.classList.remove('pre');
+    setTimeout(() => { [...track.children].forEach(b => b.style.transitionDelay = ''); document.body.classList.add('ready'); }, 2200);
+  });
+})();
+</script>
+</body>
+</html>
